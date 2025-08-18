@@ -91,10 +91,20 @@ npx trigger.dev@v4-beta deploy
 ### Common Deployment Issues
 - **Migration timeout**: ✅ Resolved with baseline optimization
 - **Redis connection errors**: ✅ Resolved with IPv6 DNS fix
+- **Python/node-gyp build errors**: ✅ Resolved with Python in nixpacks.toml
 - **Missing environment variables**: Template auto-configures all required variables
 - **Build failures**: Check Railway build logs for specific errors
 
 ### Manual Setup Troubleshooting
+
+**Python/node-gyp Build Errors:**
+```bash
+# Error: "gyp ERR! find Python You need to install the latest version of Python"
+# Cause: ssh2 package (via testcontainers) requires Python for native compilation
+# Solution: Python3 is already added to nixpacks.toml - redeploy to apply fix
+```
+
+**General Troubleshooting:**
 ```bash
 # Check if variables are set correctly
 railway variables

@@ -1,5 +1,6 @@
 [phases.setup]
-nixPkgs = ['nodejs', 'docker', 'docker-compose', 'openssl']
+nixPkgs = ['nodejs', 'docker', 'docker-compose']
+aptPkgs = ['build-essential', 'python3', 'python3-pip', 'libssl-dev', 'zlib1g-dev', 'pkg-config']
 
 [phases.build]
 cmds = [
