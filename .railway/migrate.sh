@@ -4,13 +4,16 @@ set -e
 echo "🚀 Railway Migration Optimizer for Trigger.dev"
 echo "=============================================="
 
-# Detect current git branch for release optimization
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-echo "📌 Branch: $CURRENT_BRANCH"
+# Detect deployment type (release vs development)
+if [ -f ".railway/release-migrations/manifest.json" ]; then
+  echo "📌 Deployment: Release (manifest detected)"
+else
+  echo "📌 Deployment: Development (no release manifest)"
+fi
 
-# Check if this is a release branch with optimized migration
-if [[ "$CURRENT_BRANCH" == railway-template-v* ]] && [ -f ".railway/schema.release.prisma" ] && [ -f ".railway/release-migrations/0_baseline/migration.sql" ]; then
-  echo "🎯 Release branch detected with optimized migration package"
+# Check if this is a release deployment with optimized migration
+if [ -f ".railway/release-migrations/manifest.json" ] && [ -f ".railway/schema.release.prisma" ] && [ -f ".railway/release-migrations/0_baseline/migration.sql" ]; then
+  echo "🎯 Release deployment detected with optimized migration package"
   echo "⚡ Using single-baseline strategy for ultra-fast deployment!"
   echo ""
   

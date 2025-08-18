@@ -23,6 +23,7 @@ Hosting Trigger.dev involves deploying a web application with task queue, schedu
 - **PostgreSQL database** - Job storage, state management, and task persistence (provided by Railway)
 - **Redis instance** - Queue management, real-time features, and caching (provided by Railway)
 - **Node.js/TypeScript runtime** - Core execution environment for webapp and task processing
+- **Python support** - Full Python environment available for polyglot task execution and AI/ML workflows
 
 ### Deployment Dependencies
 
@@ -51,11 +52,17 @@ Deploy a **light version** of Trigger.dev optimized for Railway's managed servic
 - **Real-time streaming** - Send live progress updates to your frontend with `ctx.sendEvent()`
 - **Enhanced retry logic** - Configurable backoff strategies and error handling
 - **TypeScript-first** - Full type safety throughout task definitions and payloads
+- **Polyglot task execution** - Write tasks in both Node.js/TypeScript and Python within the same project
 
 **External Integrations Supported:**
-- 🔗 **ClickHouse analytics** via environment variables
-- 🔗 **S3-compatible object storage** for large payloads
-- 🔗 **Email services** (Resend, SMTP, AWS SES) for authentication
+- 🔗 **ClickHouse analytics** via environment variables for advanced metrics and observability
+- 🔗 **S3-compatible object storage** for large payloads and file processing tasks
+- 🔗 **Email services** (Resend, SMTP, AWS SES) for user authentication and notifications
+
+### Email Configuration (Optional)
+- **With SMTP configured**: Users receive invitation emails and password reset links directly
+- **Without SMTP**: Invitation links are logged to Railway deployment logs - check the "Logs" tab to copy invitation URLs for new users
+- **Supported providers**: Any SMTP service, Resend, AWS SES, or external email APIs
 
 ## Why Deploy Trigger.dev on Railway?
 
