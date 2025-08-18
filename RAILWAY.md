@@ -128,6 +128,16 @@ railway service
 - **Template setup**: Done through Railway web interface, not config files
 - **Variable management**: Use Railway template functions and service references
 
+### Version-Specific Templates
+
+**🎯 Current Template Version**: v4.0.0
+
+This Railway template includes:
+- ✅ **Trigger.dev v4.0.0** - Latest stable release
+- ✅ **IPv6 DNS fixes** - Universal Redis connectivity improvements
+- ✅ **Migration optimization** - ~1 minute deployments vs 20+ minutes
+- ✅ **Railway configuration** - Optimized for Railway platform
+
 ### Using Custom Branches in Templates
 
 **⚠️ Railway Limitation**: Templates default to the `main` branch with no direct UI option to change it after creation.
@@ -135,15 +145,15 @@ railway service
 **✅ Workaround - Specify Branch in Source URL**:
 When setting the "Source repo" in template configuration, use this format:
 ```
-https://github.com/nick0lay/trigger.dev/tree/feature-branch
+https://github.com/nick0lay/trigger.dev/tree/railway-template/v4.0.0
 ```
 
-This automatically creates the template using `feature-branch` instead of `main`.
+This automatically creates the template using the version-specific branch.
 
-**Example for this project**:
-```
-https://github.com/nick0lay/trigger.dev/tree/feature/DEV-0000-setup-deployment-to-railway
-```
+**Available Template Branches**:
+- `railway-template/v4.0.0` - Current stable (includes all improvements)
+- `railway-template/v4.0.1` - Future patch release (when available)
+- `railway-template/v5.0.0` - Future major release (when available)
 
 **Alternative Approaches**:
 1. **Create new template**: Start from desired branch and generate template from that deployment
@@ -217,8 +227,19 @@ API_ORIGIN="https://${{RAILWAY_PUBLIC_DOMAIN}}"
 ✅ .env.example          # Environment variable template
 ```
 
+## 🤝 Contribution Strategy
+
+This Railway template uses a **hybrid contribution model**:
+
+1. **Immediate Value**: Templates include all improvements (IPv6 fixes, migration optimization)
+2. **Future Upstream**: Planning to contribute core improvements back to Trigger.dev
+3. **Version Management**: Separate branches for each Trigger.dev version
+
+See [.railway/docs/CONTRIBUTION_STRATEGY.md](.railway/docs/CONTRIBUTION_STRATEGY.md) for details.
+
 ---
 
 **Current Status**: ✅ Template live on Railway marketplace  
+**Template Version**: v4.0.0 (includes all improvements)  
 **Recommended**: Use the template for fastest, most reliable deployment  
 **Template URL**: https://railway.com/deploy/7mkz-R?referralCode=CG2P3Y
