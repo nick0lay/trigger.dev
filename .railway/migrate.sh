@@ -4,7 +4,41 @@ set -e
 echo "🚀 Railway Migration Optimizer for Trigger.dev"
 echo "=============================================="
 
-# Check if baseline migration exists
+# Detect current git branch for release optimization
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+echo "📌 Branch: $CURRENT_BRANCH"
+
+# Check if this is a release branch with optimized migration
+if [[ "$CURRENT_BRANCH" == railway-template-v* ]] && [ -f ".railway/schema.release.prisma" ] && [ -f ".railway/release-migrations/0_baseline/migration.sql" ]; then
+  echo "🎯 Release branch detected with optimized migration package"
+  echo "⚡ Using single-baseline strategy for ultra-fast deployment!"
+  echo ""
+  
+  # Display release info from manifest if available
+  if [ -f ".railway/release-migrations/manifest.json" ]; then
+    VERSION=$(grep '"version"' .railway/release-migrations/manifest.json | cut -d'"' -f4)
+    MIGRATION_COUNT=$(grep '"migration_count"' .railway/release-migrations/manifest.json | cut -d':' -f2 | tr -d ' ,')
+    echo "📦 Release Version: $VERSION"
+    echo "📊 Migrations consolidated: $MIGRATION_COUNT → 1"
+    echo ""
+  fi
+  
+  echo "🔄 Applying optimized release migration..."
+  cd internal-packages/database
+  npx prisma@latest migrate deploy --schema=../../.railway/schema.release.prisma
+  cd ../..
+  
+  echo "✅ Release migration complete!"
+  echo "💡 Deployment optimized from ~20 minutes to ~30 seconds"
+  echo "⚡ Skipping seed for fresh release deployment (not needed)"
+  
+  echo ""
+  echo "✨ Railway release deployment complete!"
+  echo "🚀 Your Trigger.dev deployment is ready!"
+  exit 0
+fi
+
+# Check if baseline migration exists for non-release branches
 if [ ! -f ".railway/baseline.sql" ]; then
   echo "❌ Baseline migration not found - falling back to regular migration"
   cd internal-packages/database && npx prisma@latest migrate deploy

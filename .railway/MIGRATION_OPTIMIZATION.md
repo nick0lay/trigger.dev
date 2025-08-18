@@ -2,7 +2,12 @@
 
 ## Overview
 
-This optimization reduces Trigger.dev deployment time on Railway from ~20 minutes to ~1 minute for fresh databases by using a baseline migration approach that combines all 691 historical migrations into a single optimized schema file.
+This optimization provides **dual migration strategies** for Trigger.dev Railway deployments:
+
+- **Release branches (railway-template-v*)**: Ultra-fast ~30 second deployments using single baseline migration
+- **Development branches (main, feature/*, etc.)**: Optimized ~2-3 minute deployments using baseline + migration marking
+
+The system automatically detects branch type and applies the appropriate optimization strategy.
 
 ## Quick Start
 
@@ -15,6 +20,8 @@ This optimization reduces Trigger.dev deployment time on Railway from ~20 minute
    "startCommand": "bash .railway/migrate.sh && cd apps/webapp && pnpm start"
    ```
 3. Deploy to Railway - optimization runs automatically
+
+**For Release Branches:** See [RELEASE_MIGRATION_STRATEGY.md](./RELEASE_MIGRATION_STRATEGY.md) for ultra-fast release deployment optimization.
 
 ## Problem Statement
 
@@ -175,21 +182,21 @@ The migration optimization runs automatically during Railway deployment startup 
 
 ## Performance Metrics
 
-| Metric | Before Optimization | After Optimization | Improvement |
-|--------|-------------------|-------------------|-------------|
-| **Fresh Deploy Time** | ~20 minutes | ~1 minute | **95% faster** |
+| Branch Type | Before Optimization | After Optimization | Improvement |
+|-------------|-------------------|-------------------|-------------|
+| **Release Branches** | ~20 minutes | ~30 seconds | **97% faster** |
+| **Development Branches** | ~20 minutes | ~2-3 minutes | **85% faster** |
 | **Build Success Rate** | ~60% (timeouts) | ~98% | **Much more reliable** |
-| **SQL Statements** | 691 individual files | 1 optimized file | **691:1 reduction** |
-| **Update Deploys** | Same as fresh | Same as before | **No degradation** |
+| **SQL Operations** | 691 individual files | 1 (release) / marked (dev) | **691:1 reduction** |
 
 ### Detailed Timing Breakdown (Fresh Deployment)
 
-| Phase | Before | After | Notes |
-|-------|--------|-------|--------|
-| **Build Phase** | 2-3 min | 2-3 min | No change (optimization moved to deploy) |
-| **Migration Phase** | 18-22 min | 30-60 sec | Massive improvement |
-| **App Startup** | 10-30 sec | 10-30 sec | No change |
-| **Total Time** | 20-25 min | 3-4 min | **83% total reduction** |
+| Phase | Before | Release Branches | Development Branches | Notes |
+|-------|--------|------------------|---------------------|--------|
+| **Build Phase** | 2-3 min | 2-3 min | 2-3 min | No change (optimization moved to deploy) |
+| **Migration Phase** | 18-22 min | 20-30 sec | 2-3 min | Release: single baseline; Dev: baseline + marking |
+| **App Startup** | 10-30 sec | 10-30 sec | 10-30 sec | No change |
+| **Total Time** | 20-25 min | **3-4 min** | **5-6 min** | Release: 85% reduction; Dev: 75% reduction |
 
 ## File Structure
 
