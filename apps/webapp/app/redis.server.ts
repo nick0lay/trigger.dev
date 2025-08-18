@@ -14,6 +14,7 @@ export type RedisWithClusterOptions = {
 
 export type RedisClient = Redis | Cluster;
 
+
 export function createRedisClient(
   connectionName: string,
   options: RedisWithClusterOptions
@@ -42,6 +43,7 @@ export function createRedisClient(
         username: options.username,
         password: options.password,
         enableAutoPipelining: true,
+        family: 0, // Support both IPv4 and IPv6 (Railway internal DNS)
         ...(options.tlsDisabled
           ? {
               checkServerIdentity: () => {
@@ -51,7 +53,6 @@ export function createRedisClient(
             }
           : { tls: {} }),
       },
-      dnsLookup: (address, callback) => callback(null, address),
       slotsRefreshTimeout: 10000,
     });
   } else {
@@ -69,6 +70,7 @@ export function createRedisClient(
       password: options.password,
       enableAutoPipelining: true,
       keyPrefix: options.keyPrefix,
+      family: 0, // Support both IPv4 and IPv6 (Railway internal DNS)
       ...(options.tlsDisabled ? {} : { tls: {} }),
     });
   }
