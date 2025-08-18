@@ -291,3 +291,31 @@ import { createRedisClient } from "@internal/redis";
 - Leverage metadata system for run progress tracking
 - Use realtime features for UI updates
 - Follow idempotency patterns for reliability
+
+## Git Workflow and PR Creation Rules
+
+### CRITICAL: Pull Request Rules
+- **ALWAYS create PRs to `origin` (user's fork), NOT `upstream`**
+- When using `gh pr create`, explicitly specify `--repo nick0lay/trigger.dev`
+- The user's fork is for their own development and Railway templates
+- Upstream contributions are planned but handled separately
+
+### Correct PR Creation
+```bash
+# ✅ CORRECT - Creates PR in user's fork
+gh pr create --repo nick0lay/trigger.dev --base main --title "Title"
+
+# ❌ WRONG - Creates PR in upstream
+gh pr create --repo triggerdotdev/trigger.dev  # Never do this
+gh pr create  # May default to upstream if not careful
+```
+
+### Repository Structure
+- **origin**: `git@github.com:nick0lay/trigger.dev.git` (user's fork)
+- **upstream**: `git@github.com:triggerdotdev/trigger.dev.git` (original repo)
+- Development happens in origin, upstream is for reference only
+
+### Branch Management
+- Feature branches: `feature/DEV-*`
+- Railway templates: `railway-template-v{version}` (e.g., `railway-template-v4.0.0`)
+- Always push to origin first: `git push origin branch-name`
