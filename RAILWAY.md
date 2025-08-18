@@ -145,15 +145,15 @@ This Railway template includes:
 **✅ Workaround - Specify Branch in Source URL**:
 When setting the "Source repo" in template configuration, use this format:
 ```
-https://github.com/nick0lay/trigger.dev/tree/railway-template/v4.0.0
+https://github.com/nick0lay/trigger.dev/tree/railway-template-v4.0.0
 ```
 
 This automatically creates the template using the version-specific branch.
 
 **Available Template Branches**:
-- `railway-template/v4.0.0` - Current stable (includes all improvements)
-- `railway-template/v4.0.1` - Future patch release (when available)
-- `railway-template/v5.0.0` - Future major release (when available)
+- `railway-template-v4.0.0` - Current stable (includes all improvements)
+- `railway-template-v4.0.1` - Future patch release (when available)
+- `railway-template-v5.0.0` - Future major release (when available)
 
 **Alternative Approaches**:
 1. **Create new template**: Start from desired branch and generate template from that deployment

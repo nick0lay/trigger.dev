@@ -17,10 +17,12 @@ We're using a **hybrid contribution strategy** that allows us to:
 nick0lay/trigger.dev (our fork)
 ├── main                                    # Our main branch
 ├── feature/DEV-*                          # Development branches
-├── railway-template/v4.0.0                # v4.0.0 with Railway + all improvements
-├── railway-template/v4.0.1                # Future v4.0.1 release
-└── railway-template/v5.0.0                # Future v5.0.0 release
+├── railway-template-v4.0.0                # v4.0.0 with Railway + all improvements
+├── railway-template-v4.0.1                # Future v4.0.1 release
+└── railway-template-v5.0.0                # Future v5.0.0 release
 ```
+
+**Important**: Branch names use hyphens (`-`) not slashes (`/`) to ensure Railway's URL parser correctly identifies the full branch name.
 
 ## Types of Changes
 
@@ -54,18 +56,18 @@ These are deployment-specific configurations for Railway platform:
 
 2. **Create new template branch from upstream tag**
    ```bash
-   git checkout -b railway-template/v4.0.1 trigger.dev@4.0.1
+   git checkout -b railway-template-v4.0.1 trigger.dev@4.0.1
    ```
 
 3. **Merge our improvements**
    ```bash
-   git merge railway-template/v4.0.0
+   git merge railway-template-v4.0.0
    # Resolve conflicts if any (keep upstream core, our Railway files)
    ```
 
 4. **Test and push**
    ```bash
-   git push origin railway-template/v4.0.1
+   git push origin railway-template-v4.0.1
    ```
 
 5. **Update Railway template** to point to new branch
@@ -88,7 +90,7 @@ When merging upstream changes:
 ## Future Upstream Contribution Plan
 
 ### Phase 1: Immediate (Completed)
-- ✅ Created `railway-template/v4.0.0` with all improvements
+- ✅ Created `railway-template-v4.0.0` with all improvements
 - ✅ Railway template deployed and working
 - ✅ Users get immediate value
 
@@ -169,4 +171,4 @@ Consider creating scripts for:
 
 For questions about this strategy or Railway templates:
 - GitHub: @nick0lay
-- Railway Templates: https://github.com/nick0lay/trigger.dev/tree/railway-template/v4.0.0
+- Railway Templates: https://github.com/nick0lay/trigger.dev/tree/railway-template-v4.0.0
