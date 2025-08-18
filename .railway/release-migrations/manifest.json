@@ -1,0 +1,11 @@
+{
+  "version": "v4.0.0",
+  "generated_at": "2025-08-18T21:12:22Z",
+  "baseline_includes_up_to": "20250814092224_add_task_run_plan_type",
+  "migration_count": 692,
+  "baseline_lines": 1950,
+  "schema_checksum": "772a4ae1a5b25e8db943370c1c0793d3255225502daf9b43e2cfba65206e87bd",
+  "strategy": "single-baseline-release",
+  "prisma_version": "",
+  "generation_command": "npx prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script"
+}
