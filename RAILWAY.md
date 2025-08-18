@@ -138,6 +138,13 @@ This Railway template includes:
 - ✅ **Migration optimization** - ~1 minute deployments vs 20+ minutes
 - ✅ **Railway configuration** - Optimized for Railway platform
 
+**Available Template Branches**:
+- `railway-template-v4.0.0` - Current stable (includes all improvements)
+- `railway-template-v4.0.1` - Future patch release (when available)
+- `railway-template-v5.0.0` - Future major release (when available)
+
+**Note**: Branch names use hyphens (`-`) not slashes (`/`) to ensure Railway's URL parser correctly identifies the full branch name.
+
 ### Using Custom Branches in Templates
 
 **⚠️ Railway Limitation**: Templates default to the `main` branch with no direct UI option to change it after creation.
@@ -148,12 +155,17 @@ When setting the "Source repo" in template configuration, use this format:
 https://github.com/nick0lay/trigger.dev/tree/railway-template-v4.0.0
 ```
 
-This automatically creates the template using the version-specific branch.
+This automatically creates the template using the version-specific branch instead of `main`.
 
-**Available Template Branches**:
-- `railway-template-v4.0.0` - Current stable (includes all improvements)
-- `railway-template-v4.0.1` - Future patch release (when available)
-- `railway-template-v5.0.0` - Future major release (when available)
+**Example URLs**:
+```
+# Version-specific templates
+https://github.com/nick0lay/trigger.dev/tree/railway-template-v4.0.0
+https://github.com/nick0lay/trigger.dev/tree/railway-template-v4.0.1
+
+# Development branch (for testing)
+https://github.com/nick0lay/trigger.dev/tree/feature/DEV-0000-setup-deployment-to-railway
+```
 
 **Alternative Approaches**:
 1. **Create new template**: Start from desired branch and generate template from that deployment
@@ -235,7 +247,7 @@ This Railway template uses a **hybrid contribution model**:
 2. **Future Upstream**: Planning to contribute core improvements back to Trigger.dev
 3. **Version Management**: Separate branches for each Trigger.dev version
 
-See [.railway/docs/CONTRIBUTION_STRATEGY.md](.railway/docs/CONTRIBUTION_STRATEGY.md) for details.
+Branch naming convention: `railway-template-v{version}` (e.g., `railway-template-v4.0.0`)
 
 ---
 
