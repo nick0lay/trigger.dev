@@ -1,6 +1,6 @@
-# Deploy and Host Trigger.dev v4.0.0 - Build long-running background jobs & AI workflows
+# Railway Template Publishing Guide
 
-# Deploy and Host Trigger.dev on Railway
+## Template Overview
 
 Trigger.dev is an open-source platform that lets developers reliably run long-duration background jobs—like AI workflows and data processing—directly in their codebase, without timeouts, manual scaling, or complex setup. It solves pain points like failed jobs, timeout limits, and lack of visibility with durable scheduling, automatic retries, and powerful observability.
 
