@@ -57,6 +57,7 @@ examples/
 benchmarks/
 scripts/
 !docker/scripts/
+!scripts/updateVersion.ts
 
 # Git history
 .git/
