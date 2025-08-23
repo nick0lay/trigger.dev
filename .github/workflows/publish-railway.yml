@@ -39,8 +39,8 @@ on:
 
 jobs:
   publish:
-    # Use larger runner for more disk space (30GB+ vs 14GB)
-    runs-on: ubuntu-latest-8-cores
+    # Use standard runner with aggressive cleanup (8-core runners have limited availability)
+    runs-on: ubuntu-latest
     env:
       PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 1
     outputs:
