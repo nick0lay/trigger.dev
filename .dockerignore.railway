@@ -1,0 +1,63 @@
+# Railway-specific .dockerignore for optimized builds
+# Reduces build context size to improve build performance
+
+# Documentation and non-essential files
+*.md
+LICENSE*
+CHANGELOG*
+.gitignore
+.gitattributes
+
+# Development and CI files
+.github/
+.vscode/
+.idea/
+*.log
+.env*
+!.env.example
+
+# Railway-specific (not needed in Docker context)
+.railway/
+railway.json
+
+# Testing and development
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.*
+jest.config.*
+vitest.config.*
+cypress/
+playwright/
+
+# Build artifacts and dependencies (will be installed in Docker)
+node_modules/
+.next/
+dist/
+build/
+out/
+.turbo/
+.cache/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*.swo
+*~
+
+# Package manager files (keep essential ones)
+yarn.lock
+package-lock.json
+
+# Other large directories not needed for build
+docs/
+examples/
+benchmarks/
+scripts/
+!docker/scripts/
+
+# Git history
+.git/

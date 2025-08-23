@@ -1,11 +1,8 @@
-name: "🚂 Publish Railway Docker"
+# DEPOT.DEV FALLBACK WORKFLOW
+# Rename this file to publish-railway.yml if buildx version fails
+# This uses Depot.dev which handles large Docker builds reliably
 
-# Optimized buildx workflow for Railway deployment
-# If this fails with disk space issues, fallback plan:
-# 1. Create free Depot.dev account (60 min/month free)  
-# 2. Replace setup-buildx-action with depot/setup-action@v1
-# 3. Replace build-push-action with depot/build-push-action@v1
-# 4. Remove disk cleanup steps (not needed with Depot)
+name: "🚂 Publish Railway Docker (Depot.dev)"
 
 permissions:
   contents: read
@@ -39,14 +36,16 @@ on:
 
 jobs:
   publish:
-    # Use larger runner for more disk space (30GB+ vs 14GB)
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
     env:
       PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 1
     outputs:
       version: ${{ steps.get_tag.outputs.tag }}
       image_url: ${{ steps.set_tags.outputs.image_url }}
     steps:
+      - name: 🏭 Setup Depot CLI
+        uses: depot/setup-action@v1
+
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
         with:
@@ -78,15 +77,13 @@ jobs:
       - name: 📛 Set the tags
         id: set_tags
         run: |
-          # Use your fork's registry
           ref_without_tag=ghcr.io/nick0lay/trigger.dev-railway
           image_tags=$ref_without_tag:${{ steps.get_tag.outputs.tag }}
           
-          # Also tag with branch-specific latest
+          # Also tag with version-specific latest
           if [[ "${{ github.ref }}" == refs/heads/railway-template-v* ]]; then
             BRANCH_NAME="${GITHUB_REF#refs/heads/}"
             VERSION="${BRANCH_NAME#railway-template-}"
-            # Add version-specific latest tag (e.g., v4-latest)
             MAJOR_VERSION=$(echo $VERSION | cut -d. -f1)
             image_tags=$image_tags,$ref_without_tag:${MAJOR_VERSION}-latest
           fi
@@ -107,65 +104,6 @@ jobs:
           echo "BUILD_GIT_REF_NAME=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
           echo "BUILD_TIMESTAMP_SECONDS=$(date +%s)" >> "$GITHUB_OUTPUT"
 
-      - name: 💾 Check disk space
-        run: df -h
-
-      - name: 🐋 Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            env.BUILDKIT_STEP_LOG_MAX_SIZE=10485760
-            env.BUILDKIT_STEP_LOG_MAX_SPEED=10485760
-
-      - name: 🧹 Free up disk space (aggressive cleanup)
-        run: |
-          echo "=== Before cleanup ==="
-          df -h
-          echo "=== Cleaning up ==="
-          
-          # Remove large unnecessary packages
-          sudo rm -rf /usr/local/lib/android           # ~11GB
-          sudo rm -rf /usr/local/.ghcup               # ~2GB  
-          sudo rm -rf /opt/hostedtoolcache/CodeQL      # ~5GB
-          sudo rm -rf /opt/hostedtoolcache/Java*       # ~3GB
-          sudo rm -rf /opt/hostedtoolcache/Ruby        # ~1GB
-          sudo rm -rf /opt/hostedtoolcache/go          # ~1GB
-          sudo rm -rf /opt/hostedtoolcache/node        # ~1GB
-          sudo rm -rf /opt/hostedtoolcache/Python      # ~1GB
-          sudo rm -rf /opt/az                         # ~1GB
-          sudo rm -rf /opt/microsoft                  # ~1GB
-          sudo rm -rf /usr/local/share/boost          # ~1GB
-          sudo rm -rf /usr/local/graalvm              # ~1GB
-          sudo rm -rf /usr/local/share/chromium       # ~1GB
-          sudo rm -rf /usr/local/share/chrome         # ~1GB
-          
-          # Clean package manager caches
-          sudo apt-get autoremove -y --purge
-          sudo apt-get autoclean
-          sudo apt-get clean
-          
-          # Clean Docker system
-          docker system prune -a -f
-          
-          echo "=== After cleanup ==="
-          df -h
-          echo "=== Freed up approximately: ==="
-          echo "~25-30GB of disk space"
-
-      - name: 📦 Optimize build context
-        run: |
-          echo "=== Optimizing Docker build context ==="
-          # Use Railway-specific dockerignore for smaller context
-          cp .dockerignore.railway .dockerignore
-          
-          # Show context size estimate (first 1000 files)
-          echo "=== Build context files (sample) ==="
-          find . -name .git -prune -o -type f -print | head -1000 | wc -l
-          echo "files found (showing first 1000)"
-          
-          echo "=== Large files in context ==="
-          find . -name .git -prune -o -type f -size +10M -print 2>/dev/null || echo "No large files found"
-
       - name: 🐙 Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -173,17 +111,13 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🐳 Build image and push to GitHub Container Registry  
-        uses: docker/build-push-action@v5
+      - name: 🐳 Build image and push to GitHub Container Registry
+        uses: depot/build-push-action@v1
         with:
-          context: .
           file: ./docker/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.set_tags.outputs.image_tags }}
           push: true
-          # Use registry cache instead of GitHub Actions cache (saves local disk space)
-          cache-from: type=registry,ref=ghcr.io/nick0lay/trigger.dev-railway:cache
-          cache-to: type=registry,ref=ghcr.io/nick0lay/trigger.dev-railway:cache,mode=max
           build-args: |
             BUILD_APP_VERSION=${{ steps.set_build_info.outputs.BUILD_APP_VERSION }}
             BUILD_GIT_SHA=${{ steps.set_build_info.outputs.BUILD_GIT_SHA }}
@@ -199,18 +133,9 @@ jobs:
             org.opencontainers.image.licenses=Apache-2.0
             railway.deployment=true
 
-      - name: 💾 Monitor build progress and disk space
-        run: |
-          echo "=== Build completed, checking final disk usage ==="
-          df -h
-          echo "=== Docker system usage ==="
-          docker system df
-          echo "=== Build cache size ==="
-          du -sh ~/.docker/buildx/cache 2>/dev/null || echo "No local buildx cache"
-
       - name: 📢 Output summary
         run: |
-          echo "## 🚂 Railway Docker Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚂 Railway Docker Image Published (Depot.dev)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Image URL:** \`${{ steps.set_tags.outputs.image_url }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.get_tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
@@ -219,9 +144,5 @@ jobs:
           echo "### Features" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ IPv6 support for Redis connections" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Fixed ClickHouse HTTP/HTTPS handling" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Optimized for Railway deployment" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Usage in Railway" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`dockerfile" >> $GITHUB_STEP_SUMMARY
-          echo "FROM ${{ steps.set_tags.outputs.image_url }}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Built with Depot.dev (fast, reliable)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Multi-platform support (amd64 + arm64)" >> $GITHUB_STEP_SUMMARY

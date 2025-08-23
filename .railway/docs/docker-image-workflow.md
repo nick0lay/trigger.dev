@@ -47,10 +47,12 @@ The workflow automatically builds when:
 
 ### Build Process
 
-1. **Multi-platform build**: Supports `linux/amd64` and `linux/arm64`
-2. **Depot.dev acceleration**: Uses Depot for faster builds
-3. **Layer caching**: Optimized Dockerfile for efficient rebuilds
-4. **Automatic versioning**: Extracts version from branch/tag names
+1. **Optimized build**: Single platform `linux/amd64` to reduce disk usage
+2. **Aggressive cleanup**: Frees ~25-30GB disk space before build
+3. **Large runner**: Uses `ubuntu-latest-8-cores` for extra disk space
+4. **Registry caching**: Uses registry cache instead of GitHub Actions cache
+5. **Minimal context**: Custom `.dockerignore.railway` reduces build context
+6. **Fallback ready**: Depot.dev workflow available if buildx fails
 
 ## Key Fixes Included
 
@@ -159,12 +161,26 @@ When creating new versions:
 
 ### Build Failures
 
-**Problem**: GitHub Actions workflow fails
+**Problem**: GitHub Actions workflow fails with disk space
+
+**Solution**: Switch to Depot.dev fallback
+```bash
+# 1. Rename the fallback workflow
+mv .github/workflows/publish-railway-depot-fallback.yml.disabled .github/workflows/publish-railway-depot.yml
+
+# 2. Disable current workflow  
+mv .github/workflows/publish-railway.yml .github/workflows/publish-railway-buildx.yml.disabled
+
+# 3. Create free Depot account at depot.dev
+# 4. Push to trigger new build
+```
+
+**Problem**: Other build failures
 
 **Common causes**:
 - Docker build errors (check logs)
 - GitHub token permissions (needs `packages: write`)
-- Depot.dev issues (fallback to standard build)
+- Network issues (retry the build)
 
 ### Redis Still Failing
 
