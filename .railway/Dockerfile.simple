@@ -1,0 +1,27 @@
+# Railway-optimized Dockerfile with IPv6 and ClickHouse fixes
+# Uses custom image built by GitHub Actions with all necessary patches
+FROM ghcr.io/nick0lay/trigger.dev-railway:v4.0.0
+
+# Replace existing migrations with our consolidated migration
+# The generate-consolidated-migration.sh script creates the complete migration structure
+USER root
+
+# CRITICAL: Clear existing migrations directory first
+# Official image has 692 migrations - we need to replace them with our 1 consolidated migration
+RUN rm -rf /triggerdotdev/internal-packages/database/prisma/migrations/*
+
+# Copy ONLY our consolidated migration (replaces 692 migrations with 1)
+COPY .railway/consolidated-migration/ /triggerdotdev/internal-packages/database/prisma/migrations/
+
+# Copy the current schema (the script uses the active schema)
+COPY internal-packages/database/prisma/schema.prisma \
+     /triggerdotdev/internal-packages/database/prisma/schema.prisma
+
+# Set proper ownership
+RUN chown -R node:node /triggerdotdev/internal-packages/database/prisma
+
+USER node
+
+# Original entrypoint will find and apply our single optimized migration!
+# No custom scripts, no runtime complexity, just works!
+CMD ["./scripts/entrypoint.sh"]

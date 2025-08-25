@@ -1,0 +1,227 @@
+name: "🚂 Publish Railway Docker"
+
+# Optimized buildx workflow for Railway deployment
+# If this fails with disk space issues, fallback plan:
+# 1. Create free Depot.dev account (60 min/month free)  
+# 2. Replace setup-buildx-action with depot/setup-action@v1
+# 3. Replace build-push-action with depot/build-push-action@v1
+# 4. Remove disk cleanup steps (not needed with Depot)
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+on:
+  push:
+    branches:
+      - railway-template-v*
+    tags:
+      - "v*.railway"
+  pull_request:
+    branches:
+      - railway-template-v*
+    types: [opened, synchronize]
+    paths:
+      - ".github/workflows/publish-railway.yml"
+      - "docker/**"
+      - "packages/**"
+      - "internal-packages/**"
+      - "apps/**"
+      - ".railway/**"
+      - "pnpm-lock.yaml"
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Version tag (e.g., v4.0.0)'
+        required: false
+        default: 'latest'
+
+jobs:
+  publish:
+    # Use standard runner with aggressive cleanup (8-core runners have limited availability)
+    runs-on: ubuntu-latest
+    env:
+      PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 1
+    outputs:
+      version: ${{ steps.get_tag.outputs.tag }}
+      image_url: ${{ steps.set_tags.outputs.image_url }}
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: "#️⃣ Get the image tag"
+        id: get_tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ github.event.inputs.version_tag }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          elif [[ "${{ github.ref }}" == refs/heads/railway-template-v* ]]; then
+            # Extract version from branch name (railway-template-v4.0.0 -> v4.0.0)
+            BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+            VERSION="${BRANCH_NAME#railway-template-}"
+            TAG="${VERSION}"
+          else
+            TAG="latest"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "🏷️ Using tag: ${TAG}"
+
+      - name: 🔢 Get the commit hash
+        id: get_commit
+        run: |
+          echo "sha_short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: 📛 Set the tags
+        id: set_tags
+        run: |
+          # Use your fork's registry
+          ref_without_tag=ghcr.io/nick0lay/trigger.dev-railway
+          image_tags=$ref_without_tag:${{ steps.get_tag.outputs.tag }}
+          
+          # Also tag with branch-specific latest
+          if [[ "${{ github.ref }}" == refs/heads/railway-template-v* ]]; then
+            BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+            VERSION="${BRANCH_NAME#railway-template-}"
+            # Add version-specific latest tag (e.g., v4-latest)
+            MAJOR_VERSION=$(echo $VERSION | cut -d. -f1)
+            image_tags=$image_tags,$ref_without_tag:${MAJOR_VERSION}-latest
+          fi
+          
+          # Add commit SHA for traceability
+          image_tags=$image_tags,$ref_without_tag:sha-${{ steps.get_commit.outputs.sha_short }}
+          
+          echo "image_tags=${image_tags}" >> "$GITHUB_OUTPUT"
+          echo "image_url=${ref_without_tag}:${{ steps.get_tag.outputs.tag }}" >> "$GITHUB_OUTPUT"
+          echo "📦 Image tags: ${image_tags}"
+
+      - name: 📝 Set the build info
+        id: set_build_info
+        run: |
+          tag=${{ steps.get_tag.outputs.tag }}
+          echo "BUILD_APP_VERSION=${tag}" >> "$GITHUB_OUTPUT"
+          echo "BUILD_GIT_SHA=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "BUILD_GIT_REF_NAME=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          echo "BUILD_TIMESTAMP_SECONDS=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - name: 💾 Check disk space
+        run: df -h
+
+      - name: 🐋 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            env.BUILDKIT_STEP_LOG_MAX_SIZE=10485760
+            env.BUILDKIT_STEP_LOG_MAX_SPEED=10485760
+
+      - name: 🧹 Free up disk space (aggressive cleanup)
+        run: |
+          echo "=== Before cleanup ==="
+          df -h
+          echo "=== Cleaning up ==="
+          
+          # Remove large unnecessary packages
+          sudo rm -rf /usr/local/lib/android           # ~11GB
+          sudo rm -rf /usr/local/.ghcup               # ~2GB  
+          sudo rm -rf /opt/hostedtoolcache/CodeQL      # ~5GB
+          sudo rm -rf /opt/hostedtoolcache/Java*       # ~3GB
+          sudo rm -rf /opt/hostedtoolcache/Ruby        # ~1GB
+          sudo rm -rf /opt/hostedtoolcache/go          # ~1GB
+          sudo rm -rf /opt/hostedtoolcache/node        # ~1GB
+          sudo rm -rf /opt/hostedtoolcache/Python      # ~1GB
+          sudo rm -rf /opt/az                         # ~1GB
+          sudo rm -rf /opt/microsoft                  # ~1GB
+          sudo rm -rf /usr/local/share/boost          # ~1GB
+          sudo rm -rf /usr/local/graalvm              # ~1GB
+          sudo rm -rf /usr/local/share/chromium       # ~1GB
+          sudo rm -rf /usr/local/share/chrome         # ~1GB
+          
+          # Clean package manager caches
+          sudo apt-get autoremove -y --purge
+          sudo apt-get autoclean
+          sudo apt-get clean
+          
+          # Clean Docker system
+          docker system prune -a -f
+          
+          echo "=== After cleanup ==="
+          df -h
+          echo "=== Freed up approximately: ==="
+          echo "~25-30GB of disk space"
+
+      - name: 📦 Optimize build context
+        run: |
+          echo "=== Optimizing Docker build context ==="
+          # Use Railway-specific dockerignore for smaller context
+          cp .dockerignore.railway .dockerignore
+          
+          # Show context size estimate (first 1000 files)
+          echo "=== Build context files (sample) ==="
+          find . -name .git -prune -o -type f -print | head -1000 | wc -l
+          echo "files found (showing first 1000)"
+          
+          echo "=== Large files in context ==="
+          find . -name .git -prune -o -type f -size +10M -print 2>/dev/null || echo "No large files found"
+
+      - name: 🐙 Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐳 Build image and push to GitHub Container Registry  
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          platforms: linux/amd64
+          tags: ${{ steps.set_tags.outputs.image_tags }}
+          push: true
+          # Use registry cache instead of GitHub Actions cache (saves local disk space)
+          cache-from: type=registry,ref=ghcr.io/nick0lay/trigger.dev-railway:cache
+          cache-to: type=registry,ref=ghcr.io/nick0lay/trigger.dev-railway:cache,mode=max
+          build-args: |
+            BUILD_APP_VERSION=${{ steps.set_build_info.outputs.BUILD_APP_VERSION }}
+            BUILD_GIT_SHA=${{ steps.set_build_info.outputs.BUILD_GIT_SHA }}
+            BUILD_GIT_REF_NAME=${{ steps.set_build_info.outputs.BUILD_GIT_REF_NAME }}
+            BUILD_TIMESTAMP_SECONDS=${{ steps.set_build_info.outputs.BUILD_TIMESTAMP_SECONDS }}
+          labels: |
+            org.opencontainers.image.title=Trigger.dev Railway Edition
+            org.opencontainers.image.description=Trigger.dev with IPv6 support for Railway deployment
+            org.opencontainers.image.url=https://github.com/nick0lay/trigger.dev
+            org.opencontainers.image.source=https://github.com/nick0lay/trigger.dev
+            org.opencontainers.image.version=${{ steps.get_tag.outputs.tag }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=Apache-2.0
+            railway.deployment=true
+
+      - name: 💾 Monitor build progress and disk space
+        run: |
+          echo "=== Build completed, checking final disk usage ==="
+          df -h
+          echo "=== Docker system usage ==="
+          docker system df
+          echo "=== Build cache size ==="
+          du -sh ~/.docker/buildx/cache 2>/dev/null || echo "No local buildx cache"
+
+      - name: 📢 Output summary
+        run: |
+          echo "## 🚂 Railway Docker Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image URL:** \`${{ steps.set_tags.outputs.image_url }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.get_tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ steps.get_commit.outputs.sha_short }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Features" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ IPv6 support for Redis connections" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Fixed ClickHouse HTTP/HTTPS handling" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Optimized for Railway deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Usage in Railway" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`dockerfile" >> $GITHUB_STEP_SUMMARY
+          echo "FROM ${{ steps.set_tags.outputs.image_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
