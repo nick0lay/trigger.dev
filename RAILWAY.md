@@ -17,6 +17,10 @@
 - ✅ Auto-generated secure secrets
 - ✅ Public domain with health checks
 
+**Optional services** (deploy separately if needed):
+- Electric Sync Engine: https://railway.com/deploy/electricsql-1
+- ClickHouse Analytics: Use external provider + manage with https://ch-ui.com/
+
 **Deployment time**: ~5 minutes from click to running application
 
 ## 🔧 Alternative Deployment Methods
@@ -71,6 +75,31 @@ npx trigger.dev@v4-beta init -a https://your-app.railway.app
 # Deploy your first task
 npx trigger.dev@v4-beta deploy
 ```
+
+## 🔌 Optional Services (Not Included in Template)
+
+### Electric Sync Engine
+Electric provides real-time PostgreSQL synchronization for Trigger.dev. Since it requires manual PostgreSQL configuration (`wal_level=logical`), it's not included in the main template.
+
+**To add Electric:**
+1. Deploy Electric using the official template: https://railway.com/deploy/electricsql-1
+2. Follow ElectricSQL's setup instructions for PostgreSQL configuration
+3. Connect Electric to your existing Trigger.dev PostgreSQL instance
+
+**Note:** Electric requires PostgreSQL restart after configuration changes.
+
+### ClickHouse Analytics
+ClickHouse provides advanced analytics and observability for Trigger.dev. You can connect to an external ClickHouse instance.
+
+**Options for ClickHouse:**
+1. **Cloud providers**: ClickHouse Cloud, Altinity Cloud, etc.
+2. **Self-hosted**: Deploy your own ClickHouse instance
+3. **Management**: Use CH-UI (https://ch-ui.com/) from your local machine for database management
+
+**To connect ClickHouse:**
+1. Set `CLICKHOUSE_URL` environment variable in Railway
+2. Format: `https://user:password@host:8443` (for ClickHouse Cloud)
+3. Or leave empty to disable ClickHouse features
 
 ## 🐛 Troubleshooting
 

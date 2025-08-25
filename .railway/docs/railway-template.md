@@ -42,9 +42,9 @@ Deploy a **light version** of Trigger.dev optimized for Railway's managed servic
 - ✅ **SSL certificates** and secure environment setup
 
 **Services Not Included** (vs. full docker-compose):
-- ❌ **Electric sync engine** - Real-time PostgreSQL synchronization
-- ❌ **ClickHouse database** - Analytics database (connect external via environment variables)
-- ❌ **CH-UI interface** - ClickHouse web management interface
+- ❌ **Electric sync engine** - Use https://railway.com/deploy/electricsql-1 if needed
+- ❌ **ClickHouse database** - Connect external instance via `CLICKHOUSE_URL` environment variable
+- ❌ **CH-UI interface** - Use https://ch-ui.com/ from local machine for ClickHouse management
 - ❌ **OTEL collector** - OpenTelemetry collection (Railway provides built-in observability)
 
 **Key v4.0.0 Developer Features:**
@@ -55,9 +55,11 @@ Deploy a **light version** of Trigger.dev optimized for Railway's managed servic
 - **Polyglot task execution** - Write tasks in both Node.js/TypeScript and Python within the same project
 
 **External Integrations Supported:**
-- 🔗 **ClickHouse analytics** via environment variables for advanced metrics and observability
-- 🔗 **S3-compatible object storage** for large payloads and file processing tasks
-- 🔗 **Email services** (Resend, SMTP, AWS SES) for user authentication and notifications
+- 🔗 **Electric sync engine** - Deploy separately via https://railway.com/deploy/electricsql-1
+- 🔗 **ClickHouse analytics** - Connect external instance via `CLICKHOUSE_URL` environment variable
+- 🔗 **ClickHouse management** - Use CH-UI locally: https://ch-ui.com/
+- 🔗 **S3-compatible object storage** - For large payloads and file processing tasks
+- 🔗 **Email services** (Resend, SMTP, AWS SES) - For user authentication and notifications
 
 ### Email Configuration (Optional)
 - **With SMTP configured**: Users receive invitation emails and password reset links directly
