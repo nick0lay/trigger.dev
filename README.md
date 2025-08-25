@@ -82,6 +82,12 @@ If you prefer to self-host Trigger.dev, you can follow our [self-hosting guide](
 
 We also have a dedicated self-hosting channel in our [Discord server](https://trigger.dev/discord) for support.
 
+## Railway Deployment
+
+Deploy complete Trigger.dev stack to Railway in one click:
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/c91Aj8?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
 ## Development
 
 To setup and develop locally or contribute to the open source project, follow our [development guide](./CONTRIBUTING.md).

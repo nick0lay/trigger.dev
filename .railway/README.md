@@ -1,8 +1,23 @@
 # Railway Deployment for Trigger.dev
 
-## 🚀 Quick Start
+## 🚀 One-Click Deploy (Recommended)
 
-Deploy Trigger.dev v4.0.0 to Railway in 3 steps:
+**Deploy complete Trigger.dev stack in ~5 minutes:**
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/c91Aj8?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
+**Template URL**: https://railway.com/deploy/triggerdev
+
+**What you get**:
+- ✅ Complete Trigger.dev v4 stack with all services
+- ✅ PostgreSQL, Redis, ClickHouse, MinIO, Docker Registry
+- ✅ Optimized migrations (~1 minute vs 20+ minutes)
+- ✅ IPv6 DNS support and auto-generated secrets
+- ✅ Production-ready configuration
+
+## 🛠️ Manual Deployment
+
+Deploy Trigger.dev v4.0.0 manually to Railway in 3 steps:
 
 ```bash
 # 1. Generate consolidated migration (once)
@@ -103,6 +118,7 @@ The universal migration script:
 
 ## 🔗 Related Resources
 
-- [Trigger.dev Documentation](https://trigger.dev/docs)
-- [Railway Documentation](https://docs.railway.app)
-- [Original Repository](https://github.com/triggerdotdev/trigger.dev)
+- [Railway Template](https://railway.com/deploy/triggerdev) - One-click deployment
+- [Trigger.dev Documentation](https://trigger.dev/docs) - Official docs
+- [Railway Documentation](https://docs.railway.app) - Platform docs
+- [Original Repository](https://github.com/triggerdotdev/trigger.dev) - Upstream source
