@@ -45,6 +45,22 @@ railway logs
 - Replaces 692 migrations with 1 consolidated migration
 - Zero runtime complexity - original entrypoint unchanged
 
+#### Available Docker Images
+Pre-built Railway-optimized containers available at:
+**https://github.com/nick0lay/trigger.dev/pkgs/container/trigger.dev-railway**
+
+**Available tags:**
+- `latest` - Latest stable Railway build
+- `v4.0.0` - Specific version with Railway optimizations
+- `main` - Latest main branch build
+
+**Features included in Railway images:**
+- ✅ IPv6 DNS support for Redis connectivity
+- ✅ Consolidated migrations (45x faster deployments) 
+- ✅ ClickHouse HTTP/HTTPS protocol fixes
+- ✅ Railway-specific environment variable handling
+- ✅ Production-ready configuration
+
 ### Key Components
 - **`Dockerfile.simple`** - Minimal Docker configuration
 - **`generate-consolidated-migration.sh`** - Universal migration consolidator
