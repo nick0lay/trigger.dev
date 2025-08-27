@@ -142,7 +142,91 @@ export const helloWorld = task({
 - CLI available via `trigger.dev` package for deployments
 - Self-hosting supported via Docker/Kubernetes
 
+## Task Execution Architecture
+
+### Critical Understanding: Supervisor is Required
+Trigger.dev v4 architecture **requires supervisor service** for task execution. There is no webapp-only deployment mode.
+
+### Architecture Components
+1. **Webapp (orchestration):**
+   - Queues tasks via Run Engine
+   - Manages task lifecycle and metadata
+   - Provides API and dashboard
+   - Does NOT execute user task code
+
+2. **Supervisor (execution):**
+   - Dequeues tasks from Run Engine
+   - Creates Docker containers for task execution
+   - Returns results to webapp
+   - REQUIRED for any task to actually run
+
+3. **Docker-proxy (security layer):**
+   - Provides controlled Docker socket access
+   - Required by supervisor to create containers
+   - Mounts `/var/run/docker.sock` from host
+
+### Worker Systems Clarification
+The webapp contains three different worker systems, but **none execute user tasks:**
+
+1. **Regular Worker** (`WORKER_ENABLED`): System tasks via Graphile/PostgreSQL
+2. **Legacy Run Engine Worker** (`LEGACY_RUN_ENGINE_WORKER_ENABLED`): v2 system tasks via Redis
+3. **Run Engine 2.0 Worker** (`RUN_ENGINE_WORKER_ENABLED`): v3 system tasks via Redis
+
+All handle infrastructure tasks only (heartbeats, waitpoints, cancellations). User task execution always requires supervisor.
+
+### Platform Limitations
+
+#### Railway.app Cannot Run Trigger.dev v4
+Railway explicitly does NOT support:
+- **Docker-in-Docker**: Cannot spawn containers from within containers
+- **Docker socket access**: No `/var/run/docker.sock` available
+- **Privileged containers**: Security restrictions prevent Docker daemon access
+
+Result: Supervisor cannot function on Railway, making task execution impossible.
+
+#### Self-Hosted Docker Requirements
+```yaml
+# Required services for task execution
+services:
+  webapp:           # Orchestration and API
+  supervisor:       # Task execution in containers
+  docker-proxy:     # Docker socket access
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+```
+
+#### Kubernetes Deployment
+Uses different execution model:
+- Supervisor creates Kubernetes pods instead of Docker containers
+- No Docker socket required
+- Uses Kubernetes API for pod management
+
+### Supervisor Environment Variables (Docker Deployment)
+Critical variables for supervisor to function:
+```bash
+# Docker connection - REQUIRED
+DOCKER_HOST="tcp://docker-proxy:2375"
+
+# Docker registry for task images
+DOCKER_REGISTRY_URL="localhost:5000"  # Or your registry URL
+DOCKER_REGISTRY_USERNAME=""           # If authentication required
+DOCKER_REGISTRY_PASSWORD=""           # If authentication required
+
+# Docker networking
+DOCKER_RUNNER_NETWORKS="webapp,supervisor"
+
+# Worker authentication
+TRIGGER_WORKER_TOKEN="tr_wgt_..."     # From webapp bootstrap or manual creation
+MANAGED_WORKER_SECRET="${{webapp.MANAGED_WORKER_SECRET}}"
+
+# API connection
+TRIGGER_API_URL="http://webapp:3000"
+```
+
 ## Railway Deployment Best Practices
+
+### ⚠️ IMPORTANT: Railway Cannot Run Trigger.dev v4
+Due to Railway's platform limitations (no Docker-in-Docker support), Trigger.dev v4 cannot execute tasks on Railway. The supervisor service cannot create containers, making the platform incompatible with Trigger.dev's architecture. Consider alternative platforms that support Docker socket access or Kubernetes.
 
 ### How railway.json Works
 - **railway.json is a TEMPLATE, not a variable creator**
