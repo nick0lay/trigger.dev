@@ -70,8 +70,16 @@ Pre-built Railway-optimized containers available at:
 
 - [**Migration Guide**](docs/migration-guide.md) - How consolidated migrations work
 - [**Docker Image Workflow**](docs/docker-image-workflow.md) - Custom Docker builds with IPv6 fixes
+- [**Data Replication Setup**](docs/DATA_REPLICATION.md) - **CRITICAL**: Why runs may not appear in UI and how to fix
 - [**Troubleshooting**](docs/troubleshooting.md) - Common issues and solutions
 - [**Railway Template**](docs/railway-template.md) - Publishing to Railway templates
+
+## ⚠️ Important Post-Deployment Steps
+
+### Runs Not Appearing in UI?
+If your tasks execute successfully but don't appear in the `/orgs/.../runs` page:
+
+See [Data Replication Setup](docs/DATA_REPLICATION.md) for complete configuration guide.
 
 ## 🔧 Common Operations
 

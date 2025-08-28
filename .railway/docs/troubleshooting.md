@@ -2,6 +2,23 @@
 
 ## Common Issues and Solutions
 
+### Runs Not Appearing in UI
+
+#### Tasks Execute But Don't Show in Dashboard
+**Symptoms**: Tasks execute successfully (visible in supervisor logs) but don't appear in `/orgs/.../runs`
+
+**Root Cause**: UI queries ClickHouse by default, but runs are stored in PostgreSQL. Without replication, ClickHouse tables are empty.
+
+**Quick Fix** (PostgreSQL-only):
+```sql
+-- Connect to PostgreSQL and run:
+INSERT INTO "FeatureFlag" (key, value) 
+VALUES ('runsListRepository', 'postgres') 
+ON CONFLICT (key) DO UPDATE SET value = 'postgres';
+```
+
+**Complete Solution**: See [Data Replication Setup](DATA_REPLICATION.md) for full PostgreSQL → ClickHouse replication guide.
+
 ### Migration Issues
 
 #### Prisma P3009 Error: Failed Migrations
