@@ -254,7 +254,7 @@ class RailwayClient:
         print("🔍 Extracting worker token from webapp logs...")
 
         # Get webapp logs
-        logs = self.get_deployment_logs("webapp", Config.LOG_SCAN_LINES)
+        logs = self.get_deployment_logs(Config.WEBAPP_SERVICE_NAME, Config.LOG_SCAN_LINES)
 
         if not logs:
             print("⚠️ No webapp logs found (logs may have expired)")
@@ -288,7 +288,7 @@ class RailwayClient:
             config["TRIGGER_WORKER_TOKEN"] = worker_token
 
         # Get webapp variables using Railway API
-        webapp_vars = self.get_service_variables("trigger.dev")
+        webapp_vars = self.get_service_variables(Config.WEBAPP_SERVICE_NAME)
         if webapp_vars:
             config["MANAGED_WORKER_SECRET"] = webapp_vars.get("MANAGED_WORKER_SECRET", "")
             config["TRIGGER_API_URL"] = webapp_vars.get("API_ORIGIN", "")

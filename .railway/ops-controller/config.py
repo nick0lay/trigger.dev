@@ -25,6 +25,9 @@ class Config:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     DB_SERVICE_NAME: str = os.getenv("DB_SERVICE_NAME", "Postgres")
 
+    # Railway service names
+    WEBAPP_SERVICE_NAME: str = os.getenv("WEBAPP_SERVICE_NAME", "trigger.dev")
+
     # Trigger.dev settings
     TRIGGER_VERSION: str = os.getenv("TRIGGER_VERSION", "v4.0.0")
     # Manual worker token override (optional)

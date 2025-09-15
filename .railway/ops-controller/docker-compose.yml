@@ -18,6 +18,9 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       DB_SERVICE_NAME: ${DB_SERVICE_NAME:-Postgres}
 
+      # Railway service names
+      WEBAPP_SERVICE_NAME: ${WEBAPP_SERVICE_NAME:-trigger.dev}
+
       # Monitoring configuration
       IS_ACTIVE: ${IS_ACTIVE:-true}
       CHECK_INTERVAL: ${CHECK_INTERVAL:-1}
