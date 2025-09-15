@@ -1,0 +1,13 @@
+# Core dependencies
+python-digitalocean==1.17.0
+psycopg2-binary==2.9.9
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Utilities
+retrying==1.3.4
+colorama==0.4.6
+pyyaml==6.0.1
+
+# For cloud-init generation
+jinja2==3.1.2

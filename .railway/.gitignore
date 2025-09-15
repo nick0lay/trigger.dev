@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.log
+*.pot
+*.mo
+*.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.tox/
+.mypy_cache/
+.dmypy.json
+.pyre/
+*.sqlite3
+*.db
+*.DS_Store
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+# Jupyter Notebook
+.ipynb_checkpoints/
+# VSCode
+.vscode/
+# Mac
+.DS_Store
+
+# Environment files
+.env
