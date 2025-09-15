@@ -288,7 +288,7 @@ class RailwayClient:
             config["TRIGGER_WORKER_TOKEN"] = worker_token
 
         # Get webapp variables using Railway API
-        webapp_vars = self.get_service_variables("webapp")
+        webapp_vars = self.get_service_variables("trigger.dev")
         if webapp_vars:
             config["MANAGED_WORKER_SECRET"] = webapp_vars.get("MANAGED_WORKER_SECRET", "")
             config["TRIGGER_API_URL"] = webapp_vars.get("API_ORIGIN", "")
