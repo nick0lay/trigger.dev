@@ -1,4 +1,5 @@
 """Railway API Client for extracting configuration"""
+
 import re
 import time
 from typing import Optional, Dict, Any
@@ -14,7 +15,7 @@ class RailwayClient:
         self.api_url = Config.RAILWAY_API_URL
         self.headers = {
             "Authorization": f"Bearer {Config.RAILWAY_API_TOKEN}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
         self.project_id = Config.RAILWAY_PROJECT_ID
         self.environment_id = Config.RAILWAY_ENVIRONMENT_ID
@@ -22,10 +23,7 @@ class RailwayClient:
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def _graphql_request(self, query: str, variables: Dict[str, Any] = None) -> Dict:
         """Execute GraphQL request to Railway API"""
-        payload = {
-            "query": query,
-            "variables": variables or {}
-        }
+        payload = {"query": query, "variables": variables or {}}
 
         response = requests.post(self.api_url, json=payload, headers=self.headers)
         response.raise_for_status()
@@ -69,11 +67,11 @@ class RailwayClient:
         # List of common PostgreSQL service names to try
         postgres_names = [
             Config.DB_SERVICE_NAME,  # User configured name (default: "Postgres")
-            "Postgres",              # Common Railway template name
-            "postgres",              # Lowercase version
-            "PostgreSQL",            # Full name variant
-            "Database",              # Generic database name
-            "DB"                     # Short database name
+            "Postgres",  # Common Railway template name
+            "postgres",  # Lowercase version
+            "PostgreSQL",  # Full name variant
+            "Database",  # Generic database name
+            "DB",  # Short database name
         ]
 
         # Remove duplicates while preserving order
@@ -153,11 +151,14 @@ class RailwayClient:
         """
 
         try:
-            data = self._graphql_request(query, {
-                "environmentId": self.environment_id,
-                "projectId": self.project_id,
-                "serviceId": service_id
-            })
+            data = self._graphql_request(
+                query,
+                {
+                    "environmentId": self.environment_id,
+                    "projectId": self.project_id,
+                    "serviceId": service_id,
+                },
+            )
 
             edges = data.get("deployments", {}).get("edges", [])
             if edges:
@@ -189,11 +190,14 @@ class RailwayClient:
         """
 
         try:
-            data = self._graphql_request(query, {
-                "projectId": self.project_id,
-                "environmentId": self.environment_id,
-                "serviceId": service_id
-            })
+            data = self._graphql_request(
+                query,
+                {
+                    "projectId": self.project_id,
+                    "environmentId": self.environment_id,
+                    "serviceId": service_id,
+                },
+            )
 
             # Railway returns variables as a key/value object
             variables = data.get("variables", {})
@@ -203,7 +207,9 @@ class RailwayClient:
             print(f"⚠️ Failed to get variables for {service_name}: {e}")
             return {}
 
-    def get_deployment_logs(self, service_name: str, lines: int = 1000) -> str:
+    def get_deployment_logs(
+        self, service_name: str, lines: int = 1000, filter: str = None
+    ) -> str:
         """Get deployment logs for a service using correct Railway API pattern"""
         # Step 1: Get latest deployment ID
         deployment_id = self.get_latest_deployment_id(service_name)
@@ -212,10 +218,11 @@ class RailwayClient:
 
         # Step 2: Get logs from that deployment
         query = """
-        query GetDeploymentLogs($deploymentId: String!, $limit: Int!) {
+        query GetDeploymentLogs($deploymentId: String!, $limit: Int!, $filter: String) {
             deploymentLogs(
                 deploymentId: $deploymentId
                 limit: $limit
+                filter: $filter
             ) {
                 message
                 timestamp
@@ -225,10 +232,11 @@ class RailwayClient:
         """
 
         try:
-            data = self._graphql_request(query, {
-                "deploymentId": deployment_id,
-                "limit": lines
-            })
+            variables = {"deploymentId": deployment_id, "limit": lines}
+            if filter is not None:
+                variables["filter"] = filter
+
+            data = self._graphql_request(query, variables)
 
             logs_data = data.get("deploymentLogs", [])
             # Join all log entries
@@ -242,7 +250,9 @@ class RailwayClient:
 
         # Priority 1: Check for manual override
         if Config.TRIGGER_WORKER_TOKEN:
-            print(f"✅ Using manually configured worker token: {Config.TRIGGER_WORKER_TOKEN[:20]}...")
+            print(
+                f"✅ Using manually configured worker token: {Config.TRIGGER_WORKER_TOKEN[:20]}..."
+            )
             return Config.TRIGGER_WORKER_TOKEN
 
         # Priority 2: Use cached token if available
@@ -251,17 +261,19 @@ class RailwayClient:
             return cached_token
 
         # Priority 3: Extract from logs (fallback)
-        print("🔍 Extracting worker token from webapp logs...")
+        print(f"🔍 Extracting worker token from {Config.WEBAPP_SERVICE_NAME} logs...")
 
         # Get webapp logs
-        logs = self.get_deployment_logs(Config.WEBAPP_SERVICE_NAME, Config.LOG_SCAN_LINES)
+        logs = self.get_deployment_logs(
+            Config.WEBAPP_SERVICE_NAME, Config.LOG_SCAN_LINES, "tr_wgt_"
+        )
 
         if not logs:
             print("⚠️ No webapp logs found (logs may have expired)")
             return None
 
         # Search for token pattern (tr_wgt_*)
-        token_pattern = r'(tr_wgt_[a-zA-Z0-9]+)'
+        token_pattern = r"(tr_wgt_[a-zA-Z0-9]+)"
         matches = re.findall(token_pattern, logs)
 
         if matches:
@@ -309,8 +321,15 @@ class RailwayClient:
         service_id = self.get_service_id(service_name)
 
         # If service not found and it looks like a PostgreSQL service, try smart detection
-        if not service_id and service_name.lower() in ['postgres', 'postgresql', 'database', 'db']:
-            print(f"⚠️ Service '{service_name}' not found, trying smart PostgreSQL detection...")
+        if not service_id and service_name.lower() in [
+            "postgres",
+            "postgresql",
+            "database",
+            "db",
+        ]:
+            print(
+                f"⚠️ Service '{service_name}' not found, trying smart PostgreSQL detection..."
+            )
             detected_name = self.find_postgres_service()
             if detected_name:
                 service_name = detected_name
@@ -327,10 +346,9 @@ class RailwayClient:
         """
 
         try:
-            self._graphql_request(query, {
-                "serviceId": service_id,
-                "environmentId": self.environment_id
-            })
+            self._graphql_request(
+                query, {"serviceId": service_id, "environmentId": self.environment_id}
+            )
             print(f"✅ Restarted service: {service_name}")
             return True
         except Exception as e:
