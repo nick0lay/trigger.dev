@@ -1,0 +1,45 @@
+name: ops-controller
+
+services:
+  ops-controller:
+    build: .
+    environment:
+      # DigitalOcean configuration
+      DIGITALOCEAN_TOKEN: ${DIGITALOCEAN_TOKEN}
+      SUPERVISOR_REGION: ${SUPERVISOR_REGION:-nyc1}
+      SUPERVISOR_SIZE: ${SUPERVISOR_SIZE:-s-2vcpu-2gb}
+
+      # Railway configuration
+      RAILWAY_API_TOKEN: ${RAILWAY_API_TOKEN}
+      RAILWAY_PROJECT_ID: ${RAILWAY_PROJECT_ID}
+      RAILWAY_ENVIRONMENT_ID: ${RAILWAY_ENVIRONMENT_ID}
+
+      # PostgreSQL configuration
+      DATABASE_URL: ${DATABASE_URL}
+      DB_SERVICE_NAME: ${DB_SERVICE_NAME:-Postgres}
+
+      # Monitoring configuration
+      IS_ACTIVE: ${IS_ACTIVE:-true}
+      CHECK_INTERVAL: ${CHECK_INTERVAL:-1}
+      AUTO_DISABLE: ${AUTO_DISABLE:-false}
+      HEALTHY_CYCLES_BEFORE_DISABLE: ${HEALTHY_CYCLES_BEFORE_DISABLE:-3}
+
+      # Trigger.dev configuration
+      TRIGGER_VERSION: ${TRIGGER_VERSION:-v4.0.0}
+      TRIGGER_WORKER_TOKEN: ${TRIGGER_WORKER_TOKEN:-}
+
+
+    volumes:
+      # Mount local code for development
+      - ./:/app:ro
+      # Persist state between runs
+      - ops-state:/tmp
+
+    # Network mode for local testing
+    network_mode: host
+
+    # Restart policy for continuous monitoring
+    restart: unless-stopped
+
+volumes:
+  ops-state:
