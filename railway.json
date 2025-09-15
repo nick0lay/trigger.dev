@@ -5,7 +5,6 @@
     "dockerfilePath": ".railway/Dockerfile.simple"
   },
   "deploy": {
-    "startCommand": "chmod +x .railway/scripts/*.sh && ./.railway/scripts/railway-startup.sh && pnpm start",
     "healthcheckPath": "/healthcheck",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
