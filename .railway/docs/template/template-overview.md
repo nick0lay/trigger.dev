@@ -1,10 +1,12 @@
-# Deploy and Host Trigger.dev on Railway
+# Deploy and Host Trigger.dev on Railway (Webapp) + DigitalOcean (Supervisor)
 
 Trigger.dev is an open-source platform that lets developers reliably run long-duration background jobs—like AI workflows and data processing—directly in their codebase, without timeouts, manual scaling, or complex setup.
 
-## About Hosting Trigger.dev
+## About This Dual-Platform Deployment
 
-Hosting Trigger.dev involves deploying a web application with task queue, scheduler, and worker pool for background job execution. You need PostgreSQL for job storage, Redis for queue management, ClickHouse for analytics, object storage for large payloads, and a Docker registry for deployments. This Railway template provides a complete production-ready deployment that includes all necessary services: Trigger.dev webapp, managed PostgreSQL and Redis, ClickHouse analytics database, MinIO object storage, and a private Docker registry—everything needed to run enterprise-grade background jobs with automatic scaling and monitoring.
+This template deploys Trigger.dev across two platforms: **Railway hosts the webapp** (orchestration, API, dashboard) while **DigitalOcean runs the supervisor** (task execution in Docker containers). This architecture is required because Railway doesn't provide Docker socket access needed for task execution, while DigitalOcean droplets have full Docker capabilities.
+
+The included **ops-controller automates the entire deployment process**—requiring only your DigitalOcean API token alongside Railway's auto-provided credentials. After one-click deployment, the system automatically provisions a DigitalOcean droplet, configures task execution, and maintains the supervisor without manual intervention.
 
 ## Common Use Cases
 
@@ -15,6 +17,17 @@ Hosting Trigger.dev involves deploying a web application with task queue, schedu
 - **Webhook automation** - Event-driven workflows and third-party service integrations with retry logic
 - **Scheduled task execution** - Cron-like scheduling with robust error handling and real-time monitoring
 - **API workflow orchestration** - Chain multiple API calls with proper error handling and state management
+
+## Architecture: Railway + DigitalOcean
+
+**Why Two Platforms?**
+Trigger.dev v4 requires a supervisor service to execute tasks in Docker containers. Railway's platform restrictions prevent Docker socket access (`/var/run/docker.sock`), making task execution impossible. DigitalOcean droplets provide the full Docker capabilities needed for the supervisor.
+
+**How It Works:**
+1. **Railway Services**: Webapp, PostgreSQL, Redis, ClickHouse, MinIO, Docker registry
+2. **DigitalOcean Service**: Supervisor droplet for task execution
+3. **ops-controller**: Automates cross-platform deployment and monitoring
+4. **One-Click Setup**: Deploy button requires only your DigitalOcean API token
 
 ## Dependencies for Trigger.dev Hosting
 
@@ -30,6 +43,8 @@ Hosting Trigger.dev involves deploying a web application with task queue, schedu
 
 - **Trigger.dev v4.0.0** - [Latest stable release](https://github.com/triggerdotdev/trigger.dev/releases/tag/trigger.dev%404.0.0)
 - **Railway account** - [Sign up at railway.app](https://railway.app)
+- **DigitalOcean account** - [Sign up at digitalocean.com](https://digitalocean.com) and [generate API token](https://cloud.digitalocean.com/account/api/tokens)
+- **ops-controller** - Automated deployment service (included in template)
 - **Documentation** - [Official Trigger.dev docs](https://trigger.dev/docs)
 
 ### Optional Services
@@ -41,11 +56,10 @@ Hosting Trigger.dev involves deploying a web application with task queue, schedu
 ### Implementation Details
 
 **What's Included:**
-- ✅ Core Trigger.dev webapp with dashboard, API, and built-in task workers
-- ✅ Managed PostgreSQL and Redis via Railway services
-- ✅ ClickHouse analytics database for advanced metrics and observability
-- ✅ MinIO S3-compatible object storage for large payloads and file processing
-- ✅ Private Docker registry for secure task deployment and container management
+- ✅ **Railway Services**: Trigger.dev webapp, PostgreSQL, Redis, ClickHouse, MinIO, Docker registry
+- ✅ **DigitalOcean Supervisor**: Automated droplet deployment for task execution
+- ✅ **ops-controller**: Cross-platform automation with health monitoring and auto-scaling
+- ✅ **One-Click Setup**: Deploy with just DigitalOcean API token, everything else auto-configured
 - ✅ Optimized migrations (~1 minute vs 20+ minutes)
 - ✅ IPv6 DNS support for Railway internal networking
 - ✅ Auto-generated secure secrets (SESSION_SECRET, ENCRYPTION_KEY, etc.)
@@ -134,17 +148,17 @@ When email is not configured, find invitation links in Railway logs:
 3. Copy magic link URLs: `https://your-app.up.railway.app/magic?token=<token>`
 4. Share links with users for registration
 
-## Why Deploy Trigger.dev on Railway?
+## Why This Dual-Platform Approach?
 
-Railway is a singular platform to deploy your infrastructure stack. Railway will host your infrastructure so you don't have to deal with configuration, while allowing you to vertically and horizontally scale it.
+This template combines **Railway's managed infrastructure** with **DigitalOcean's Docker capabilities** to provide the complete Trigger.dev v4 experience without compromise.
 
-By deploying Trigger.dev on Railway, you are one step closer to supporting a complete full-stack application with minimal burden. Host your servers, databases, AI agents, and more on Railway.
+**Railway handles your infrastructure complexity** - PostgreSQL, Redis, ClickHouse, MinIO, and Docker registry are fully managed with automatic backups, while **DigitalOcean provides the Docker socket access** essential for task execution that Railway cannot offer.
 
-**Additional Railway Benefits:**
-- **Zero infrastructure administration** - Fully managed PostgreSQL, Redis, ClickHouse, MinIO, and Docker registry with automatic backups
-- **One-click deployment** - Deploy complete Trigger.dev stack from this template in ~5 minutes
-- **Cost-effective** - Pay only for resources used, all services scale down to zero when idle
-- **Production-ready** - SSL certificates, monitoring, health checks, and observability included
-- **Complete observability** - Built-in analytics with ClickHouse and monitoring dashboards
-- **Secure deployments** - Private Docker registry for secure task container management
-- **Developer-friendly** - GitHub integration with automatic deployments and CI/CD
+**Key Benefits:**
+- **True one-click deployment** - ops-controller automates the entire cross-platform setup
+- **Zero infrastructure administration** - Railway manages databases, DigitalOcean supervisor auto-configures
+- **Cost-effective** - Railway services scale to zero when idle, DigitalOcean droplet optimizes for task load
+- **Production-ready** - SSL certificates, health monitoring, and observability across both platforms
+- **Complete feature set** - Full Trigger.dev v4 capabilities without platform limitations
+- **Automated maintenance** - ops-controller handles supervisor updates and health monitoring
+- **Developer-friendly** - GitHub integration, automatic deployments, and unified logging
