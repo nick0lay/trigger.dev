@@ -86,7 +86,7 @@ We also have a dedicated self-hosting channel in our [Discord server](https://tr
 
 Deploy complete Trigger.dev stack to Railway in one click:
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/c91Aj8?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/triggerdev?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
 ## Development
 
