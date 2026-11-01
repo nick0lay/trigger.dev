@@ -10,7 +10,7 @@ class Config:
 
     # DigitalOcean settings
     DIGITALOCEAN_TOKEN: str = os.getenv("DIGITALOCEAN_TOKEN", "")
-    SUPERVISOR_REGION: str = os.getenv("SUPERVISOR_REGION", "nyc1")
+    SUPERVISOR_REGION: str = os.getenv("SUPERVISOR_REGION", "nyc3")
     SUPERVISOR_SIZE: str = os.getenv("SUPERVISOR_SIZE", "s-2vcpu-2gb")
     SUPERVISOR_IMAGE: str = "docker-20-04"
     SUPERVISOR_TAG_PREFIX: str = "trigger-supervisor"
