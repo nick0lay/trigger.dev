@@ -28,7 +28,7 @@ Copy `.env.example` to `.env` and configure:
 ```bash
 # DigitalOcean
 DIGITALOCEAN_TOKEN=dop_v1_your_token_here
-SUPERVISOR_REGION=nyc1
+SUPERVISOR_REGION=nyc3
 SUPERVISOR_SIZE=s-2vcpu-2gb
 
 # Railway
@@ -317,7 +317,7 @@ The controller automatically fixes:
 
 - **Default Size**: `s-2vcpu-2gb` ($24/month)
 - **Image**: Ubuntu 20.04 with Docker
-- **Region**: Configurable (default: `nyc1`)
+- **Region**: Configurable (default: `nyc3`)
 - **Tags**: Automatically tagged for identification
 
 ### Services Deployed

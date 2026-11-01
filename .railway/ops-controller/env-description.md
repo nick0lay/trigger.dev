@@ -5,7 +5,7 @@ This document describes all environment variables used by the Trigger.dev Ops Co
 ## DigitalOcean Configuration
 
 DIGITALOCEAN_TOKEN="dop_v1_8ca..." # DigitalOcean API token for creating and managing droplets. Get from https://cloud.digitalocean.com/account/api/tokens
-SUPERVISOR_REGION="nyc1" # DigitalOcean region where supervisor droplet will be created. Available: nyc1, nyc3, sfo3, ams3, sgp1, lon1, fra1, tor1, blr1
+SUPERVISOR_REGION="nyc3" # DigitalOcean region where supervisor droplet will be created (the size must be offered there). For example: nyc3, sfo3, ams3, sgp1, lon1, fra1, tor1, blr1
 SUPERVISOR_SIZE="s-1vcpu-1gb" # DigitalOcean droplet size for supervisor. Options: s-1vcpu-1gb, s-2vcpu-2gb, s-2vcpu-4gb, s-4vcpu-8gb
 
 ## Railway Integration
@@ -38,6 +38,7 @@ TRIGGER_WORKER_TOKEN="tr_wgt_..." # Manual worker token override. Leave empty to
 ## Docker Registry (Optional)
 
 DOCKER_REGISTRY_URL="${{registry.RAILWAY_PUBLIC_DOMAIN}}" # Docker registry domain for supervisor images. Optional if using default Docker Hub
+# The supervisor also gets DOCKER_REGISTRY_USERNAME/PASSWORD from the registry service's REGISTRY_USERNAME and REGISTRY_PASSWORD variables, read through the Railway API. Leave those unset for a registry without auth.
 
 ## Operational Settings (Advanced)
 
@@ -58,7 +59,7 @@ DATABASE_URL="${{Postgres.DATABASE_URL}}"
 ### Production Configuration with Auto-Disable
 ```bash
 DIGITALOCEAN_TOKEN="dop_v1_your_token_here"
-SUPERVISOR_REGION="nyc1"
+SUPERVISOR_REGION="nyc3"
 SUPERVISOR_SIZE="s-2vcpu-2gb"
 RAILWAY_API_TOKEN="your_railway_api_token"
 DATABASE_URL="${{Postgres.DATABASE_URL}}"

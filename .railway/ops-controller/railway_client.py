@@ -251,13 +251,13 @@ class RailwayClient:
         # Priority 1: Check for manual override
         if Config.TRIGGER_WORKER_TOKEN:
             print(
-                f"✅ Using manually configured worker token: {Config.TRIGGER_WORKER_TOKEN[:20]}..."
+                f"✅ Using manually configured worker token: {Config.TRIGGER_WORKER_TOKEN[:7]}***"
             )
             return Config.TRIGGER_WORKER_TOKEN
 
         # Priority 2: Use cached token if available
         if cached_token:
-            print(f"✅ Using cached worker token: {cached_token[:20]}...")
+            print(f"✅ Using cached worker token: {cached_token[:7]}***")
             return cached_token
 
         # Priority 3: Extract from logs (fallback)
@@ -279,7 +279,7 @@ class RailwayClient:
         if matches:
             # Return the most recent token (last match)
             token = matches[-1]
-            print(f"✅ Found worker token in logs: {token[:20]}...")
+            print(f"✅ Found worker token in logs: {token[:7]}***")
             return token
 
         print("⚠️ No worker token found in logs")
@@ -309,6 +309,10 @@ class RailwayClient:
         registry_vars = self.get_service_variables("registry")
         if registry_vars:
             config["DOCKER_REGISTRY_URL"] = registry_vars.get("RAILWAY_PUBLIC_DOMAIN", "")
+            # Credentials for registries with basic auth (REGISTRY_USERNAME and
+            # REGISTRY_PASSWORD on the registry service). Empty means no auth.
+            config["DOCKER_REGISTRY_USERNAME"] = registry_vars.get("REGISTRY_USERNAME", "")
+            config["DOCKER_REGISTRY_PASSWORD"] = registry_vars.get("REGISTRY_PASSWORD", "")
 
         # Add OTEL endpoint based on API URL
         if config.get("TRIGGER_API_URL"):
