@@ -309,6 +309,10 @@ class RailwayClient:
         registry_vars = self.get_service_variables("registry")
         if registry_vars:
             config["DOCKER_REGISTRY_URL"] = registry_vars.get("RAILWAY_PUBLIC_DOMAIN", "")
+            # Credentials for registries with basic auth (REGISTRY_USERNAME and
+            # REGISTRY_PASSWORD on the registry service). Empty means no auth.
+            config["DOCKER_REGISTRY_USERNAME"] = registry_vars.get("REGISTRY_USERNAME", "")
+            config["DOCKER_REGISTRY_PASSWORD"] = registry_vars.get("REGISTRY_PASSWORD", "")
 
         # Add OTEL endpoint based on API URL
         if config.get("TRIGGER_API_URL"):

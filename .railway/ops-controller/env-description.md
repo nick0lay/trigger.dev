@@ -38,6 +38,7 @@ TRIGGER_WORKER_TOKEN="tr_wgt_..." # Manual worker token override. Leave empty to
 ## Docker Registry (Optional)
 
 DOCKER_REGISTRY_URL="${{registry.RAILWAY_PUBLIC_DOMAIN}}" # Docker registry domain for supervisor images. Optional if using default Docker Hub
+# The supervisor also gets DOCKER_REGISTRY_USERNAME/PASSWORD from the registry service's REGISTRY_USERNAME and REGISTRY_PASSWORD variables, read through the Railway API. Leave those unset for a registry without auth.
 
 ## Operational Settings (Advanced)
 
