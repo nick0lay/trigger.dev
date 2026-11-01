@@ -251,13 +251,13 @@ class RailwayClient:
         # Priority 1: Check for manual override
         if Config.TRIGGER_WORKER_TOKEN:
             print(
-                f"✅ Using manually configured worker token: {Config.TRIGGER_WORKER_TOKEN[:20]}..."
+                f"✅ Using manually configured worker token: {Config.TRIGGER_WORKER_TOKEN[:7]}***"
             )
             return Config.TRIGGER_WORKER_TOKEN
 
         # Priority 2: Use cached token if available
         if cached_token:
-            print(f"✅ Using cached worker token: {cached_token[:20]}...")
+            print(f"✅ Using cached worker token: {cached_token[:7]}***")
             return cached_token
 
         # Priority 3: Extract from logs (fallback)
@@ -279,7 +279,7 @@ class RailwayClient:
         if matches:
             # Return the most recent token (last match)
             token = matches[-1]
-            print(f"✅ Found worker token in logs: {token[:20]}...")
+            print(f"✅ Found worker token in logs: {token[:7]}***")
             return token
 
         print("⚠️ No worker token found in logs")
