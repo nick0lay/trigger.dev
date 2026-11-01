@@ -88,7 +88,12 @@ class OpsController:
 
             self.print_status(f"Extracted {len(config)} configuration values", "success")
             for key in config:
-                masked_value = config[key][:20] + "..." if len(config[key]) > 20 else config[key]
+                value = config[key]
+                if any(word in key for word in ("PASSWORD", "SECRET", "TOKEN")):
+                    # Never log secrets, not even a prefix.
+                    masked_value = f"<set, {len(value)} chars>" if value else "<empty>"
+                else:
+                    masked_value = value[:20] + "..." if len(value) > 20 else value
                 print(f"    {key}: {masked_value}")
 
             return config
