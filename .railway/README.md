@@ -4,14 +4,15 @@
 
 **Deploy complete Trigger.dev stack in ~5 minutes:**
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/c91Aj8?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/triggerdev?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
-**Template URL**: https://railway.com/deploy/triggerdev
+**Template URL**: https://railway.com/deploy/triggerdev?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic
+
+The template's Railway packaging (webapp Dockerfile, registry image, template description) lives in [nick0lay/railway-templates](https://github.com/nick0lay/railway-templates/tree/main/solutions/trigger-dev). This fork builds the patched webapp image (`ghcr.io/nick0lay/trigger.dev-railway`) and the ops-controller image (`ghcr.io/nick0lay/trigger-ops-controller`).
 
 **What you get**:
 - ✅ Complete Trigger.dev v4 stack with all services
-- ✅ PostgreSQL, Redis, ClickHouse, MinIO, Docker Registry
-- ✅ Optimized migrations (~1 minute vs 20+ minutes)
+- ✅ PostgreSQL, Redis, ClickHouse, Railway Bucket, password-protected Docker registry
 - ✅ IPv6 DNS support and auto-generated secrets
 - ✅ Production-ready configuration
 
@@ -142,7 +143,8 @@ The universal migration script:
 
 ## 🔗 Related Resources
 
-- [Railway Template](https://railway.com/deploy/triggerdev) - One-click deployment
+- [Railway Template](https://railway.com/deploy/triggerdev?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic) - One-click deployment
+- [Railway packaging](https://github.com/nick0lay/railway-templates/tree/main/solutions/trigger-dev) - Template source in nick0lay/railway-templates
 - [Trigger.dev Documentation](https://trigger.dev/docs) - Official docs
 - [Railway Documentation](https://docs.railway.app) - Platform docs
 - [Original Repository](https://github.com/triggerdotdev/trigger.dev) - Upstream source

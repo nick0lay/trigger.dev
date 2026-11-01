@@ -88,6 +88,8 @@ Deploy complete Trigger.dev stack to Railway in one click:
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/triggerdev?referralCode=CG2P3Y&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
+The template's Railway packaging lives in [nick0lay/railway-templates](https://github.com/nick0lay/railway-templates/tree/main/solutions/trigger-dev). This fork holds the Railway patches (dual-stack DNS for Redis on Railway's IPv6 private network) and builds the webapp and ops-controller images.
+
 ## Development
 
 To setup and develop locally or contribute to the open source project, follow our [development guide](./CONTRIBUTING.md).
