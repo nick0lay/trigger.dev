@@ -32,7 +32,7 @@ class Config:
     WEBAPP_SERVICE_NAME: str = os.getenv("WEBAPP_SERVICE_NAME", "trigger.dev")
 
     # Trigger.dev settings
-    TRIGGER_VERSION: str = os.getenv("TRIGGER_VERSION", "v4.0.0")
+    TRIGGER_VERSION: str = os.getenv("TRIGGER_VERSION", "v4.8.3")
     # Manual worker token override (optional)
     TRIGGER_WORKER_TOKEN: str = os.getenv("TRIGGER_WORKER_TOKEN", "")
     DOCKER_REGISTRY_URL: str = os.getenv("DOCKER_REGISTRY_URL", "")

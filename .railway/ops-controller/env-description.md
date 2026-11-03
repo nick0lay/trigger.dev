@@ -32,7 +32,7 @@ HEALTHY_CYCLES_BEFORE_DISABLE="3" # Number of consecutive healthy cycles before 
 
 ## Trigger.dev Configuration
 
-TRIGGER_VERSION="v4.0.0" # Version of Trigger.dev to deploy on supervisor. Should match your webapp version
+TRIGGER_VERSION="v4.8.3" # Version of Trigger.dev to deploy on supervisor. Should match your webapp version
 TRIGGER_WORKER_TOKEN="tr_wgt_..." # Manual worker token override. Leave empty to extract from webapp logs automatically
 
 ## Docker Registry (Optional)
@@ -69,7 +69,7 @@ IS_ACTIVE="true"
 CHECK_INTERVAL="5"
 AUTO_DISABLE="true"
 HEALTHY_CYCLES_BEFORE_DISABLE="3"
-TRIGGER_VERSION="v4.0.0"
+TRIGGER_VERSION="v4.8.3"
 ```
 
 ### Custom Service Names

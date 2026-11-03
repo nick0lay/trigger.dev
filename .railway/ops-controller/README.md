@@ -37,6 +37,8 @@ RAILWAY_PROJECT_ID=your_railway_project_id
 # Note: Railway provides RAILWAY_ENVIRONMENT_ID, not RAILWAY_ENVIRONMENT
 # This is automatically available in Railway deployments
 RAILWAY_ENVIRONMENT_ID=your_railway_environment_id
+# Set by Railway; lets the controller save the worker token on its own service
+RAILWAY_SERVICE_ID=your_ops_controller_service_id
 
 # PostgreSQL
 DATABASE_URL=postgresql://user:password@host:port/database
@@ -54,7 +56,7 @@ AUTO_DISABLE=false
 HEALTHY_CYCLES_BEFORE_DISABLE=3
 
 # Trigger.dev Configuration
-TRIGGER_VERSION=v4.0.0
+TRIGGER_VERSION=v4.8.3
 # Manual worker token (optional - leave empty to extract from logs)
 TRIGGER_WORKER_TOKEN=
 ```
@@ -146,26 +148,19 @@ The ops-controller uses a smart priority system for obtaining the worker token:
    - Survives container restarts (if volume persisted)
 
 3. **Log Extraction** (fallback)
-   - Searches Railway webapp logs for `tr_wgt_*` pattern
-   - Only works if logs haven't expired (~3 days retention)
+   - The webapp prints the worker token (`tr_wgt_*`) only once, on its first boot
+   - The ops-controller searches the webapp's last 20 deployments, newest first, including removed ones, so the token is still found after the webapp is redeployed or upgraded
+   - When found, the token is saved as `TRIGGER_WORKER_TOKEN` on the ops-controller service itself (Railway API, without a redeploy), so it survives ops-controller redeploys and log expiry. This needs `RAILWAY_SERVICE_ID`, which Railway sets automatically
 
 ### Handling Log Expiration
 
-Railway logs expire after approximately 3 days. After expiration:
+Railway keeps logs for a limited time. Once the token has been found and saved, expiry no longer matters. If the logs expired before the ops-controller ever found the token, copy it from the first webapp deployment's logs (if still visible) and set it by hand:
 
-**Option 1: Manual Token**
 ```bash
-# Extract token manually from webapp UI or logs
 TRIGGER_WORKER_TOKEN=tr_wgt_abc123xyz789 docker-compose up -d
 ```
 
-**Option 2: Restart Webapp**
-```bash
-# Restart webapp to generate fresh logs with token
-railway redeploy webapp
-# Then restart ops-controller
-docker-compose restart
-```
+Redeploying the webapp does not print the token again.
 
 ## 🤖 Auto-Disable Feature
 
@@ -440,14 +435,15 @@ If supervisor health check fails:
 
 ### Updating Trigger.dev Version
 
-Update the environment variable and restart the service:
-```bash
-# Update environment
-echo "TRIGGER_VERSION=v4.1.0" >> .env
+The webapp and the supervisor must run the same version. Change the webapp image tag and `TRIGGER_VERSION` together:
 
-# Restart service to pick up new version
-docker-compose restart
+```bash
+TRIGGER_VERSION=v4.8.3
 ```
+
+Changing `TRIGGER_VERSION` on Railway redeploys the ops-controller. Every supervisor droplet carries a `trigger-version:<version>` tag (for example `trigger-version:v4-8-3`). On its next cycle the ops-controller destroys a droplet whose tag differs from `TRIGGER_VERSION`, waits until it is gone and creates a new one. Runs queue in the meantime.
+
+Droplets created before version tags existed have no tag and are kept as they are. To upgrade one, delete it in the DigitalOcean console and the ops-controller creates a new one.
 
 ### Scaling the Supervisor
 
