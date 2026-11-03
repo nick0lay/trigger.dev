@@ -2,7 +2,7 @@
 
 import re
 import time
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import requests
 from retrying import retry
 from config import Config
@@ -210,13 +210,16 @@ class RailwayClient:
     def get_deployment_logs(
         self, service_name: str, lines: int = 1000, filter: str = None
     ) -> str:
-        """Get deployment logs for a service using correct Railway API pattern"""
-        # Step 1: Get latest deployment ID
+        """Get logs of the latest successful deployment of a service"""
         deployment_id = self.get_latest_deployment_id(service_name)
         if not deployment_id:
             return ""
+        return self.get_logs_for_deployment(deployment_id, lines, filter)
 
-        # Step 2: Get logs from that deployment
+    def get_logs_for_deployment(
+        self, deployment_id: str, lines: int = 1000, filter: str = None
+    ) -> str:
+        """Get the logs of one deployment, joined into one string"""
         query = """
         query GetDeploymentLogs($deploymentId: String!, $limit: Int!, $filter: String) {
             deploymentLogs(
@@ -239,11 +242,82 @@ class RailwayClient:
             data = self._graphql_request(query, variables)
 
             logs_data = data.get("deploymentLogs", [])
-            # Join all log entries
             return "\n".join([log.get("message", "") for log in logs_data if log])
         except Exception as e:
-            print(f"⚠️ Failed to get logs for {service_name}: {e}")
+            print(f"⚠️ Failed to get logs for deployment {deployment_id}: {e}")
             return ""
+
+    def list_deployment_ids(self, service_name: str, limit: int) -> List[str]:
+        """Deployment IDs of a service, newest first, including removed ones.
+
+        The webapp prints the worker token only on its first boot, so the
+        token is usually in an older deployment that has since been REMOVED.
+        """
+        service_id = self.get_service_id(service_name)
+        if not service_id:
+            return []
+
+        query = """
+        query ListDeployments($input: DeploymentListInput!, $first: Int!) {
+            deployments(input: $input, first: $first) {
+                edges { node { id status createdAt } }
+            }
+        }
+        """
+        try:
+            data = self._graphql_request(
+                query,
+                {
+                    "first": limit,
+                    "input": {
+                        "projectId": self.project_id,
+                        "environmentId": self.environment_id,
+                        "serviceId": service_id,
+                        "status": {"in": ["SUCCESS", "REMOVED", "FAILED", "CRASHED"]},
+                    },
+                },
+            )
+        except Exception as e:
+            print(f"⚠️ Failed to list deployments for {service_name}: {e}")
+            return []
+
+        nodes = [e["node"] for e in data.get("deployments", {}).get("edges", [])]
+        nodes.sort(key=lambda n: n.get("createdAt") or "", reverse=True)
+        return [n["id"] for n in nodes[:limit]]
+
+    def persist_worker_token(self, token: str) -> bool:
+        """Save the worker token as TRIGGER_WORKER_TOKEN on this service.
+
+        Keeps the token across ops-controller redeploys and log expiry.
+        Needs RAILWAY_SERVICE_ID, which Railway sets at runtime. Never raises.
+        """
+        if not Config.RAILWAY_SERVICE_ID:
+            print("⚠️ RAILWAY_SERVICE_ID not set; not saving the worker token")
+            return False
+
+        query = """
+        mutation SaveWorkerToken($input: VariableCollectionUpsertInput!) {
+            variableCollectionUpsert(input: $input)
+        }
+        """
+        try:
+            self._graphql_request(
+                query,
+                {
+                    "input": {
+                        "projectId": self.project_id,
+                        "environmentId": self.environment_id,
+                        "serviceId": Config.RAILWAY_SERVICE_ID,
+                        "variables": {"TRIGGER_WORKER_TOKEN": token},
+                        "skipDeploys": True,
+                    }
+                },
+            )
+            print("✅ Saved worker token as TRIGGER_WORKER_TOKEN on this service")
+            return True
+        except Exception as e:
+            print(f"⚠️ Could not save worker token: {e}")
+            return False
 
     def extract_worker_token(self, cached_token: str = None) -> Optional[str]:
         """Extract TRIGGER_WORKER_TOKEN with priority: env var > cache > logs"""
@@ -260,29 +334,29 @@ class RailwayClient:
             print(f"✅ Using cached worker token: {cached_token[:7]}***")
             return cached_token
 
-        # Priority 3: Extract from logs (fallback)
+        # Priority 3: Extract from webapp logs, newest deployment first
         print(f"🔍 Extracting worker token from {Config.WEBAPP_SERVICE_NAME} logs...")
-
-        # Get webapp logs
-        logs = self.get_deployment_logs(
-            Config.WEBAPP_SERVICE_NAME, Config.LOG_SCAN_LINES, "tr_wgt_"
+        token_pattern = r"(tr_wgt_[a-zA-Z0-9]+)"
+        deployment_ids = self.list_deployment_ids(
+            Config.WEBAPP_SERVICE_NAME, Config.TOKEN_SEARCH_DEPLOYMENTS
         )
-
-        if not logs:
-            print("⚠️ No webapp logs found (logs may have expired)")
+        if not deployment_ids:
+            print("⚠️ No webapp deployments found")
             return None
 
-        # Search for token pattern (tr_wgt_*)
-        token_pattern = r"(tr_wgt_[a-zA-Z0-9]+)"
-        matches = re.findall(token_pattern, logs)
+        for deployment_id in deployment_ids:
+            logs = self.get_logs_for_deployment(
+                deployment_id, Config.LOG_SCAN_LINES, "tr_wgt_"
+            )
+            matches = re.findall(token_pattern, logs)
+            if matches:
+                # The most recent token in that deployment (last match)
+                token = matches[-1]
+                print(f"✅ Found worker token in logs of deployment {deployment_id}: {token[:7]}***")
+                self.persist_worker_token(token)
+                return token
 
-        if matches:
-            # Return the most recent token (last match)
-            token = matches[-1]
-            print(f"✅ Found worker token in logs: {token[:7]}***")
-            return token
-
-        print("⚠️ No worker token found in logs")
+        print(f"⚠️ No worker token found in the last {len(deployment_ids)} webapp deployments")
         print("   Tip: Set TRIGGER_WORKER_TOKEN manually or check if logs have expired")
         return None
 

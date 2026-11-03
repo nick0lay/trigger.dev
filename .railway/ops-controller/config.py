@@ -21,6 +21,8 @@ class Config:
     RAILWAY_API_URL: str = "https://backboard.railway.app/graphql/v2"
     RAILWAY_PROJECT_ID: str = os.getenv("RAILWAY_PROJECT_ID", "")
     RAILWAY_ENVIRONMENT_ID: str = os.getenv("RAILWAY_ENVIRONMENT_ID", "")
+    # Set by Railway at runtime; used to save the worker token on this service.
+    RAILWAY_SERVICE_ID: str = os.getenv("RAILWAY_SERVICE_ID", "")
 
     # PostgreSQL settings
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
@@ -39,6 +41,8 @@ class Config:
     MAX_RETRIES: int = 3
     RETRY_DELAY: int = 5
     LOG_SCAN_LINES: int = 1000
+    # How many webapp deployments (newest first) to search for the worker token
+    TOKEN_SEARCH_DEPLOYMENTS: int = 20
     DROPLET_WAIT_TIMEOUT: int = 300  # 5 minutes
 
     # Monitoring settings
