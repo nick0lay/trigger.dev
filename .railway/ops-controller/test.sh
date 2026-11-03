@@ -21,6 +21,10 @@ python3 -c "import config; import railway_client; import postgres_configurator; 
 
 echo "✅ Import test passed"
 
+# Unit tests (pip install -r requirements.txt -r requirements-dev.txt)
+echo "🧪 Running unit tests..."
+python3 -m pytest -q tests
+
 echo ""
 echo "🎉 All tests passed!"
 echo ""

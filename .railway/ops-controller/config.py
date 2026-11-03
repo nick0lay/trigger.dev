@@ -1,5 +1,6 @@
 """Configuration for Ops Controller"""
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -78,6 +79,18 @@ class Config:
         """Get unique tag for supervisor droplet"""
         env_id = cls.RAILWAY_ENVIRONMENT_ID[:8] if cls.RAILWAY_ENVIRONMENT_ID else "default"
         return f"{cls.SUPERVISOR_TAG_PREFIX}-{cls.RAILWAY_PROJECT_ID}-{env_id}"
+
+    VERSION_TAG_PREFIX: str = "trigger-version:"
+
+    @classmethod
+    def get_version_tag(cls, version: str = None) -> str:
+        """Droplet tag that records the Trigger.dev version of the supervisor.
+
+        DigitalOcean tags allow only letters, numbers, ':', '-' and '_', so
+        v4.8.3 becomes trigger-version:v4-8-3.
+        """
+        value = version or cls.TRIGGER_VERSION
+        return cls.VERSION_TAG_PREFIX + re.sub(r"[^A-Za-z0-9_-]", "-", value)
 
     @classmethod
     def get_droplet_name(cls) -> str:

@@ -30,6 +30,51 @@ class DigitalOceanManager:
             print(f"❌ Failed to get droplets: {e}")
             return []
 
+    @staticmethod
+    def droplet_version(droplet) -> Optional[str]:
+        """Return the droplet's trigger-version tag, or None if it has none."""
+        for tag in droplet.tags or []:
+            if tag.startswith(Config.VERSION_TAG_PREFIX):
+                return tag
+        return None
+
+    def replace_if_outdated(self) -> bool:
+        """Destroy supervisor droplets built for another Trigger.dev version.
+
+        Droplets without a version tag were created before version tracking
+        and are kept. Returns False if a destroy failed, so the caller does
+        not create a second droplet next to the old one.
+        """
+        wanted = Config.get_version_tag()
+        ok = True
+        destroyed: List[int] = []
+        for droplet in self.get_existing_droplets():
+            current = self.droplet_version(droplet)
+            if current is None or current == wanted:
+                continue
+            print(f"🔄 Replacing supervisor {droplet.name}: version {current} -> {wanted}")
+            try:
+                droplet.destroy()
+                destroyed.append(droplet.id)
+                print(f"✅ Destroyed outdated droplet: {droplet.name}")
+            except Exception as e:
+                print(f"❌ Failed to destroy outdated droplet {droplet.name}: {e}")
+                ok = False
+        if destroyed and ok:
+            ok = self._wait_until_gone(destroyed)
+        return ok
+
+    def _wait_until_gone(self, droplet_ids: List[int], timeout: int = 180, interval: int = 5) -> bool:
+        """DigitalOcean deletes droplets asynchronously; wait until they are no longer listed."""
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            remaining = [d for d in self.get_existing_droplets() if d.id in droplet_ids]
+            if not remaining:
+                return True
+            time.sleep(interval)
+        print("⚠️ Outdated droplet still listed after destroy; will retry next cycle")
+        return False
+
     def is_supervisor_deployed(self) -> bool:
         """Check if supervisor is already deployed"""
         droplets = self.get_existing_droplets()
@@ -212,7 +257,7 @@ runcmd:
             size_slug=Config.SUPERVISOR_SIZE,
             user_data=user_data,
             monitoring=True,
-            tags=[self.tag, "trigger-supervisor", "ops-controller-deployed"]
+            tags=[self.tag, "trigger-supervisor", "ops-controller-deployed", Config.get_version_tag()]
         )
 
         try:
