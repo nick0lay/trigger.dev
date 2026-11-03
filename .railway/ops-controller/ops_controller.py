@@ -148,6 +148,12 @@ class OpsController:
             return False
 
         try:
+            # A supervisor built for another TRIGGER_VERSION is destroyed here,
+            # so the code below creates a new one with the right version.
+            if not self.do_manager.replace_if_outdated():
+                self.print_status("Could not replace the outdated supervisor; will retry next cycle", "error")
+                return False
+
             # Check if already deployed
             deployment_info = self.do_manager.get_deployment_info()
             if deployment_info.get("deployed"):
