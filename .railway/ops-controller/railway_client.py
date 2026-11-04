@@ -273,7 +273,9 @@ class RailwayClient:
                         "projectId": self.project_id,
                         "environmentId": self.environment_id,
                         "serviceId": service_id,
-                        "status": {"in": ["SUCCESS", "REMOVED", "FAILED", "CRASHED"]},
+                        # REMOVING: right after a webapp redeploy the old deployment,
+                        # which may hold the token, is still shutting down.
+                        "status": {"in": ["SUCCESS", "REMOVING", "REMOVED", "FAILED", "CRASHED", "SLEEPING"]},
                     },
                 },
             )

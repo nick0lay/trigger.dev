@@ -28,6 +28,10 @@ def client_with(monkeypatch):
             if "deployments(" in query:
                 # API order is not trusted: return oldest first on purpose.
                 nodes = sorted(deployments, key=lambda d: d[2])
+                # Like Railway, only return statuses the query asks for.
+                wanted = variables.get("input", {}).get("status", {}).get("in")
+                if wanted is not None:
+                    nodes = [n for n in nodes if n[1] in wanted]
                 return {"deployments": {"edges": [
                     {"node": {"id": i, "status": s, "createdAt": t}} for i, s, t in nodes]}}
             if "services" in query or "service" in query:
@@ -94,3 +98,12 @@ def test_token_never_logged_in_full(capsys, client_with):
     c, _ = client_with(deployments=DEPLOYS, logs={"d1": "tr_wgt_abc123"})
     c.extract_worker_token()
     assert "tr_wgt_abc123" not in capsys.readouterr().out
+
+
+def test_token_found_while_old_deployment_is_removing(client_with):
+    # Right after a webapp redeploy the old deployment is REMOVING for about a minute.
+    deploys = [("d2", "SUCCESS", "2026-11-04T21:44:35Z"),
+               ("d1", "REMOVING", "2026-11-04T21:30:19Z")]
+    c, calls = client_with(deployments=deploys, logs={"d1": "worker token tr_wgt_rem456"})
+    assert c.extract_worker_token() == "tr_wgt_rem456"
+    assert calls.upserts == [{"TRIGGER_WORKER_TOKEN": "tr_wgt_rem456"}]
